@@ -3,508 +3,425 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KSIKR - SME 특화 ESG/LCA 통합 플랫폼 (v77.0 Logic Integration)</title>
+    <title>KSIKR - Enterprise ESG/LCA Platform (v99.0 Full Standard)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700&display=swap');
-        body { font-family: 'Pretendard', sans-serif; }
-        .nav-active { background-color: #f0f9ff; color: #0369a1; border-right: 3px solid #0284c7; }
-        .fade-in { animation: fadeIn 0.3s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        body { font-family: 'Pretendard', sans-serif; background-color: #f8fafc; }
         
-        /* Modal Styles */
-        .modal-overlay { background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); transition: all 0.3s; }
-        .modal-content { animation: modalUp 0.3s ease-out; }
-        @keyframes modalUp { from { opacity: 0; transform: translateY(20px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
-
-        /* Traffic Light & Check Styles */
-        .status-light { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 6px; }
-        .light-red { background-color: #ef4444; box-shadow: 0 0 6px rgba(239, 68, 68, 0.4); }
-        .light-yellow { background-color: #eab308; box-shadow: 0 0 6px rgba(234, 179, 8, 0.4); animation: pulse 1.5s infinite; }
-        .light-green { background-color: #22c55e; box-shadow: 0 0 6px rgba(34, 197, 94, 0.4); }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
-
-        /* Main Form Checklist Styles */
-        .check-item { transition: all 0.3s ease; border-left: 3px solid transparent; padding-left: 8px; }
-        .check-none { opacity: 0.4; border-left-color: #cbd5e1; }
-        .check-done { opacity: 1; background-color: #f0fdf4; border-left-color: #22c55e; }
-        .check-done .icon-area { color: #22c55e; }
-        .check-none .icon-area { color: #94a3b8; }
-
-        .proxy-data { background-color: #f0fdf4 !important; border-color: #86efac !important; color: #166534 !important; transition: all 1s; }
+        /* UI Components */
+        .nav-item { transition: all 0.2s; border-radius: 12px; font-weight: 600; color: #64748b; font-size: 14px; }
+        .nav-item:hover { background-color: #f1f5f9; color: #334155; }
+        .nav-active { background-color: #e0e7ff; color: #4338ca; box-shadow: 0 4px 6px -1px rgba(67, 56, 202, 0.1); }
+        .kpi-card { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px; transition: transform 0.2s; }
+        .kpi-card:hover { transform: translateY(-3px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+        .input-field { width: 100%; border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px 12px; font-size: 13px; text-align: right; transition: all 0.2s; }
+        .input-field:focus { border-color: #6366f1; outline: none; ring: 2px solid #e0e7ff; }
+        .input-readonly { background-color: #f1f5f9; color: #64748b; cursor: not-allowed; }
         
-        /* Drag & Drop Hover State */
-        .drag-over { background-color: #eff6ff !important; border-color: #6366f1 !important; transform: scale(1.02); }
+        /* Report Style */
+        .report-paper { width: 210mm; min-height: 297mm; padding: 20mm; margin: 0 auto; background: white; box-shadow: 0 0 20px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; font-family: 'Times New Roman', serif; }
+        .report-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 12px; }
+        .report-table th, .report-table td { border: 1px solid #000; padding: 6px; text-align: left; }
+        .report-table th { background-color: #f3f4f6; font-weight: bold; }
+        
+        /* Animation */
+        .fade-in { animation: fadeIn 0.3s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 h-screen flex flex-col overflow-hidden">
+<body class="text-slate-800 h-screen flex flex-col overflow-hidden">
 
-    <div id="expert-mode" class="h-full flex flex-col transition-opacity duration-500 bg-slate-50 z-40">
-        <div class="ticker-wrap flex items-center shrink-0 bg-slate-900 text-white h-8 text-xs px-4">
-            <div class="flex items-center gap-2 w-full">
-                <span class="bg-indigo-600 px-2 py-0.5 rounded font-bold">SYSTEM</span>
-                <span class="text-slate-300">ISO 14040/14046 Logic Core Active</span>
-                <span class="ml-auto text-green-400 font-bold"><i class="fas fa-check-circle mr-1"></i>Hybrid Input Mode (Manual + AI)</span>
-            </div>
+    <script>
+        window.appState = {
+            totalGWP: 0.00,
+            breakdown: [0, 0, 0, 0, 0, 0], 
+            history: [
+                { date: '2025-11-20', product: 'Basic T-Shirt', gwp: 3.85, status: 'Certified' },
+                { date: '2025-12-05', product: 'Denim Pants', gwp: 12.4, status: 'Draft' }
+            ],
+            suppliers: [
+                { name: 'Dongjin Textile', item: 'Cotton Fabric', ef: 1.8 },
+                { name: 'Taekwang Ind', item: 'Polyester', ef: 4.6 }
+            ]
+        };
+
+        const PEF_CATS = {
+            'tshirt': { name: 'T-Shirts (Knitted)', life: 2.0, wash: 52, temp: 40 },
+            'shirt': { name: 'Shirts/Blouses (Woven)', life: 3.0, wash: 40, temp: 40 },
+            'pants': { name: 'Trousers/Pants', life: 3.0, wash: 30, temp: 30 },
+            'jeans': { name: 'Denim/Jeans', life: 4.0, wash: 20, temp: 30 },
+            'coat': { name: 'Coats/Jackets', life: 5.0, wash: 5, temp: 30 },
+            'shoes': { name: 'Footwear', life: 2.0, wash: 2, temp: 30 }
+        };
+
+        const GRID_DB = {
+            'KR': { name: 'South Korea (IEA)', factor: 0.478 },
+            'CN': { name: 'China (IEA Avg)', factor: 0.584 },
+            'VN': { name: 'Vietnam (IGES)', factor: 0.450 },
+            'EU': { name: 'EU Average (EEA)', factor: 0.250 },
+            'US': { name: 'USA Average (EPA)', factor: 0.380 }
+        };
+
+        const MATERIAL_DB = {
+            'cotton_conv': { name: 'Cotton (Conv)', ef: 1.8, waste: 0.05 },
+            'poly_virgin': { name: 'Polyester (Virgin)', ef: 4.6, waste: 0.02 },
+            'nylon': { name: 'Nylon 6.6', ef: 8.5, waste: 0.03 },
+            'leather': { name: 'Leather', ef: 18.0, waste: 0.15 }
+        };
+
+        // Upstream Processing (Background Data)
+        const PROCESS_DB = {
+            'none': { name: 'None (Raw Material Only)', energy: 0 },
+            'spinning': { name: 'Spinning/Weaving (Upstream)', energy: 3.5 },
+            'dyeing': { name: 'Dyeing/Finishing (Upstream)', energy: 8.0 }
+        };
+
+        const PACK_DB = {
+            'none': { name: 'None', ef: 0 },
+            'ldpe': { name: 'Polybag (LDPE)', ef: 2.5 },
+            'box': { name: 'Cardboard Box', ef: 0.8 }
+        };
+    </script>
+
+    <div class="h-10 bg-slate-900 text-white flex items-center px-6 text-xs font-medium justify-between z-50 shadow-md shrink-0">
+        <div class="flex items-center gap-4">
+            <span class="bg-indigo-600 px-2 py-0.5 rounded text-[10px] font-bold tracking-wider">KSIKR OFFICIAL</span>
+            <span class="text-slate-400">Standard: <span class="text-green-400">ISO 14067 / PEFCR 3.1</span></span>
         </div>
-
-        <div class="flex flex-1 overflow-hidden">
-            <aside class="w-64 bg-white border-r border-slate-200 flex flex-col z-20 shadow-sm">
-                <div class="p-5 border-b border-slate-100 flex items-center gap-3">
-                    <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-lg">K</div>
-                    <div><h1 class="text-lg font-bold text-slate-800">KSIKR <span class="text-xs font-normal text-slate-500">Pro</span></h1></div>
-                </div>
-                <nav class="flex-1 p-3 space-y-1 overflow-y-auto">
-                    <p class="px-3 py-2 text-[10px] font-bold text-slate-400 mt-2">DASHBOARD</p>
-                    <button onclick="switchTab('dashboard')" id="nav-dashboard" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors nav-active"><i class="fas fa-chart-pie w-5 text-center"></i> 통합 관제 센터</button>
-                    <p class="px-3 py-2 text-[10px] font-bold text-slate-400 mt-4">CORE FEATURES</p>
-                    <button onclick="switchTab('lca')" id="nav-lca" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors"><i class="fas fa-tshirt w-5 text-center"></i> 제품 PEF/LCA 평가</button>
-                    <button onclick="switchTab('compliance')" id="nav-compliance" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors"><i class="fas fa-passport w-5 text-center"></i> 규제 & 보고서</button>
-                </nav>
-            </aside>
-
-            <main class="flex-1 overflow-y-auto bg-slate-50/50 p-6 md:p-8 relative">
-                
-                <section id="dashboard" class="fade-in max-w-7xl mx-auto">
-                    <header class="flex justify-between items-end mb-6">
-                        <div><h2 class="text-2xl font-bold text-slate-800">Dashboard</h2></div>
-                        <div class="flex gap-2"><button onclick="switchTab('lca')" class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-bold shadow-lg">LCA 평가 시작</button></div>
-                    </header>
-                    <div class="grid grid-cols-4 gap-4"><div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm h-32 flex flex-col justify-center items-center text-slate-400">Carbon Chart Area</div></div>
-                </section>
-
-                <section id="lca" class="hidden fade-in max-w-7xl mx-auto">
-                    <div class="flex justify-between items-center mb-4">
-                        <div>
-                            <h2 class="text-xl font-bold text-slate-800">제품 전과정평가 (LCA Workspace)</h2>
-                            <p class="text-sm text-slate-500">데이터를 직접 입력하거나, AI 팝업을 통해 문서를 업로드하세요.</p>
-                        </div>
-                        <button onclick="openAIModal()" class="px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl text-sm font-bold hover:shadow-lg hover:scale-105 transition-all flex items-center gap-2 animate-bounce-soft">
-                            <i class="fas fa-robot text-lg"></i> AI 스마트 데이터 가져오기
-                        </button>
-                    </div>
-
-                    <div class="grid grid-cols-12 gap-6">
-                        <div class="col-span-8 space-y-6 pb-20">
-                            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-                                <h5 class="text-sm font-bold text-slate-700 mb-3 border-b pb-2">1. 기본 정보 (Basic)</h5>
-                                <div class="grid grid-cols-2 gap-4">
-                                    <div><label class="block text-xs font-bold text-slate-500 mb-1">적용 규칙</label><select id="pefcrSelect" class="w-full border rounded p-2 text-sm"><option value="footwear">Footwear (신발)</option><option value="apparel">Apparel (의류)</option></select></div>
-                                    <div><label class="block text-xs font-bold text-slate-500 mb-1">생산 국가</label><select id="prodCountry" class="w-full border rounded p-2 text-sm"><option value="0.478">대한민국</option><option value="0.580">중국</option><option value="0.450">베트남</option></select></div>
-                                </div>
-                            </div>
-
-                            <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                                <div class="bg-slate-50 px-5 py-3 border-b border-slate-200 flex justify-between items-center">
-                                    <h5 class="text-sm font-bold text-slate-700">2. 자재 명세 (BOM)</h5>
-                                    <span class="text-xs text-slate-400">수동 입력 가능</span>
-                                </div>
-                                <table class="w-full text-sm text-left">
-                                    <thead class="bg-white text-xs text-slate-500 uppercase border-b">
-                                        <tr><th class="px-5 py-3">자재명</th><th class="px-5 py-3">LCI DB 매핑</th><th class="px-5 py-3 text-right">중량(kg)</th><th class="px-5 py-3 text-center">확인</th></tr>
-                                    </thead>
-                                    <tbody id="material-review-body">
-                                        <tr><td colspan="4" class="px-5 py-8 text-center text-slate-400 text-xs">데이터가 없습니다.<br>상단 'AI 스마트 데이터 가져오기'를 사용해보세요.</td></tr>
-                                    </tbody>
-                                </table>
-                            </div>
-
-                            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-                                <h5 class="text-sm font-bold text-slate-700 mb-3 border-b pb-2">3. 공정 데이터 (Manufacturing)</h5>
-                                <div class="grid grid-cols-2 gap-6">
-                                    <div class="space-y-3">
-                                        <div class="flex justify-between items-center"><label class="text-xs text-slate-600">공정 전력 (필수)</label><input type="number" id="elecInput" class="w-20 text-right border rounded p-1 text-xs check-trigger" placeholder="0"><span class="text-[10px] ml-1">kWh/pc</span></div>
-                                        <div class="flex justify-between items-center"><label class="text-xs text-slate-600">가스/열 (선택)</label><input type="number" id="gasInput" class="w-20 text-right border rounded p-1 text-xs check-trigger" placeholder="0"><span class="text-[10px] ml-1">MJ/pc</span></div>
-                                    </div>
-                                    <div class="space-y-3">
-                                        <div class="flex justify-between items-center"><label class="text-xs text-slate-600">공정 용수</label><input type="number" id="waterInput" class="w-20 text-right border rounded p-1 text-xs check-trigger" placeholder="0"><span class="text-[10px] ml-1">L/pc</span></div>
-                                        <div class="flex justify-between items-center"><label class="text-xs text-slate-600">폐기물 총량</label><input type="number" id="wasteInput" class="w-20 text-right border rounded p-1 text-xs check-trigger" placeholder="0"><span class="text-[10px] ml-1">kg/pc</span></div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-                                <h5 class="text-sm font-bold text-slate-700 mb-3 border-b pb-2">4. 포장 및 물류 (Pkg & Logi)</h5>
-                                <div class="grid grid-cols-2 gap-6">
-                                    <div class="space-y-3">
-                                        <div class="flex justify-between items-center"><label class="text-xs text-slate-600">플라스틱 포장</label><input type="number" id="pkgPlasticInput" class="w-20 text-right border rounded p-1 text-xs check-trigger" placeholder="0"><span class="text-[10px] ml-1">kg</span></div>
-                                        <div class="flex justify-between items-center"><label class="text-xs text-slate-600">종이 포장</label><input type="number" id="pkgPaperInput" class="w-20 text-right border rounded p-1 text-xs check-trigger" placeholder="0"><span class="text-[10px] ml-1">kg</span></div>
-                                    </div>
-                                    <div class="space-y-3">
-                                        <div class="flex justify-between items-center"><label class="text-xs text-slate-600">내륙 운송</label><input type="number" id="inlandDist" class="w-20 text-right border rounded p-1 text-xs check-trigger" placeholder="0"><span class="text-[10px] ml-1">km</span></div>
-                                        <div class="flex justify-between items-center"><label class="text-xs text-slate-600">국제 운송</label><select id="transMode" class="w-20 border rounded p-1 text-xs"><option>Sea</option><option>Air</option></select></div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <button onclick="calculatePEF()" class="w-full py-4 bg-indigo-800 text-white font-bold rounded-xl shadow-md hover:bg-indigo-900 transition-colors">최종 결과 산출 (Calculate)</button>
-                        </div>
-
-                        <div class="col-span-4 space-y-4">
-                            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm sticky top-6">
-                                <h5 class="text-sm font-bold text-slate-700 mb-4 flex items-center"><i class="fas fa-check-double text-indigo-500 mr-2"></i>입력 현황 모니터링</h5>
-                                <div class="space-y-1">
-                                    <div id="status-bom" class="check-item check-none p-2 rounded flex items-center gap-3">
-                                        <i class="fas fa-circle text-[8px] icon-area"></i><span class="text-xs font-bold text-slate-600">1. BOM 자재명세</span>
-                                    </div>
-                                    <div id="status-energy" class="check-item check-none p-2 rounded flex items-center gap-3">
-                                        <i class="fas fa-circle text-[8px] icon-area"></i><span class="text-xs font-bold text-slate-600">2. 공정 에너지</span>
-                                    </div>
-                                    <div id="status-water" class="check-item check-none p-2 rounded flex items-center gap-3">
-                                        <i class="fas fa-circle text-[8px] icon-area"></i><span class="text-xs font-bold text-slate-600">3. 용수 및 폐기물</span>
-                                    </div>
-                                    <div id="status-pkg" class="check-item check-none p-2 rounded flex items-center gap-3">
-                                        <i class="fas fa-circle text-[8px] icon-area"></i><span class="text-xs font-bold text-slate-600">4. 포장 및 물류</span>
-                                    </div>
-                                </div>
-                                <div class="mt-6 pt-4 border-t border-slate-100 text-center">
-                                    <p class="text-[10px] text-slate-400 mb-2">모든 항목이 완료(초록색)되어야 합니다.</p>
-                                    <div id="final-score" class="text-2xl font-bold text-slate-300">-- <span class="text-xs font-normal">kgCO2e</span></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-            </main>
+        <div class="flex items-center gap-4">
+            <span class="flex items-center gap-2"><i class="fas fa-database text-slate-500"></i> DB: Ecoinvent 3.9</span>
+            <span class="flex items-center gap-2"><i class="fas fa-user-circle text-slate-500"></i> Admin</span>
         </div>
     </div>
 
-    <div id="aiModal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-overlay">
-        <div class="bg-white w-full max-w-4xl h-[85vh] rounded-2xl shadow-2xl flex flex-col modal-content overflow-hidden">
-            <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center shrink-0">
-                <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 bg-indigo-500 rounded-lg flex items-center justify-center"><i class="fas fa-robot text-white"></i></div>
-                    <div>
-                        <h3 class="font-bold text-lg">AI Smart Data Collector</h3>
-                        <p class="text-[10px] text-slate-400">증빙 문서를 업로드하면 AI가 분석하여 기존 양식에 자동 입력합니다.</p>
-                    </div>
-                </div>
-                <button onclick="closeAIModal()" class="text-slate-400 hover:text-white transition-colors"><i class="fas fa-times text-xl"></i></button>
+    <div class="flex flex-1 overflow-hidden h-full">
+        <aside class="w-64 bg-white border-r border-slate-200 flex flex-col z-40">
+            <div class="p-6 border-b border-slate-100 flex items-center gap-3">
+                <div class="w-10 h-10 bg-indigo-700 rounded-xl flex items-center justify-center text-white font-black text-xl shadow-lg shadow-indigo-200">K</div>
+                <div><h1 class="text-lg font-extrabold text-slate-900 leading-tight">KSIKR <span class="text-indigo-600 font-medium">LCA</span></h1><p class="text-[10px] text-slate-400">SME ESG Solution</p></div>
             </div>
+            <nav class="flex-1 p-4 space-y-2 overflow-y-auto">
+                <p class="px-3 text-[10px] font-bold text-slate-400 mt-4 mb-2 tracking-wider">WORKSPACE</p>
+                <button onclick="switchTab('dashboard')" id="btn-dashboard" class="nav-item w-full flex items-center gap-3 px-4 py-3 nav-active"><i class="fas fa-chart-line w-5 text-center"></i> 대시보드</button>
+                <button onclick="switchTab('lca')" id="btn-lca" class="nav-item w-full flex items-center gap-3 px-4 py-3"><i class="fas fa-calculator w-5 text-center"></i> 정밀 LCA 산정</button>
+                <button onclick="switchTab('report')" id="btn-report" class="nav-item w-full flex items-center gap-3 px-4 py-3"><i class="fas fa-file-contract w-5 text-center"></i> 인증 리포트</button>
+                <p class="px-3 text-[10px] font-bold text-slate-400 mt-8 mb-2 tracking-wider">DATA CENTER</p>
+                <button onclick="switchTab('supply')" id="btn-supply" class="nav-item w-full flex items-center gap-3 px-4 py-3"><i class="fas fa-database w-5 text-center"></i> 공급망 데이터</button>
+                <button onclick="switchTab('history')" id="btn-history" class="nav-item w-full flex items-center gap-3 px-4 py-3"><i class="fas fa-history w-5 text-center"></i> 산정 이력</button>
+            </nav>
+        </aside>
 
-            <div class="flex-1 overflow-y-auto p-8 bg-slate-50">
-                <div class="grid grid-cols-2 gap-6">
-                    
-                    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:border-indigo-300 transition-colors group">
-                        <div class="flex justify-between items-start mb-3">
-                            <div class="flex items-center gap-2">
-                                <span id="light-bom" class="status-light light-red"></span>
-                                <h4 class="font-bold text-slate-700">1. 자재명세서 (BOM)</h4>
-                            </div>
-                            <i class="fas fa-tshirt text-slate-200 text-2xl group-hover:text-indigo-100 transition-colors"></i>
-                        </div>
-                        <p class="text-xs text-slate-500 mb-4 bg-slate-50 p-2 rounded border border-slate-100">
-                            <span class="font-bold text-indigo-600">Guideline:</span> ERP에서 다운로드한 <b>BOM 엑셀</b> 또는 <b>작업지시서(PDF)</b>를 업로드하세요.
-                        </p>
-                        <label class="w-full block text-center border-2 border-dashed border-slate-300 rounded-lg p-3 hover:bg-slate-50 hover:border-indigo-400 cursor-pointer transition-all drop-zone" id="drop-bom">
-                            <div class="pointer-events-none">
-                                <i class="fas fa-cloud-upload-alt text-slate-400 mb-1"></i>
-                                <span class="block text-xs font-bold text-slate-500">파일 찾기 또는 드래그</span>
-                            </div>
-                            <input type="file" class="hidden" onchange="processAI('bom', this)">
-                        </label>
-                        <div id="res-bom" class="hidden mt-3 text-xs text-green-600 font-bold bg-green-50 p-2 rounded text-center"></div>
-                    </div>
+        <main class="flex-1 overflow-y-auto relative scroll-smooth bg-slate-50 p-8">
+            
+            <section id="tab-dashboard" class="fade-in max-w-7xl mx-auto">
+                <header class="flex justify-between items-end mb-8">
+                    <div><h2 class="text-3xl font-bold text-slate-800">통합 관제 대시보드</h2><p class="text-sm text-slate-500 mt-1">2025년 연간 환경 성과 모니터링</p></div>
+                    <button onclick="switchTab('lca')" class="px-5 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-bold shadow-lg hover:bg-indigo-700 transition-all"><i class="fas fa-plus mr-2"></i>신규 평가 시작</button>
+                </header>
+                <div class="grid grid-cols-4 gap-5 mb-8">
+                    <div class="kpi-card"><div class="flex justify-between mb-2"><span class="text-xs font-bold text-slate-500">AVG GWP</span><i class="fas fa-cloud text-indigo-200"></i></div><h3 class="text-2xl font-bold text-slate-800"><span id="dash-avg-gwp">8.12</span> <span class="text-sm text-slate-400">kg</span></h3></div>
+                    <div class="kpi-card"><div class="flex justify-between mb-2"><span class="text-xs font-bold text-slate-500">COMPLIANCE</span><i class="fas fa-shield-alt text-green-200"></i></div><h3 class="text-xl font-bold text-green-700">ESPR Ready</h3></div>
+                    <div class="kpi-card"><div class="flex justify-between mb-2"><span class="text-xs font-bold text-slate-500">CBAM RISK</span><i class="fas fa-exclamation-triangle text-yellow-200"></i></div><h3 class="text-2xl font-bold text-slate-800">Low</h3></div>
+                    <div class="kpi-card"><div class="flex justify-between mb-2"><span class="text-xs font-bold text-slate-500">COST SAVING</span><i class="fas fa-won-sign text-blue-200"></i></div><h3 class="text-2xl font-bold text-slate-800">₩ 12.5M</h3></div>
+                </div>
+                <div class="grid grid-cols-3 gap-6">
+                    <div class="col-span-2 bg-white p-6 rounded-2xl border shadow-sm"><h4 class="font-bold text-slate-800 mb-4">월별 배출량 추이 (12개월)</h4><div class="h-64"><canvas id="mainChart"></canvas></div></div>
+                    <div class="col-span-1 bg-white p-6 rounded-2xl border shadow-sm"><h4 class="font-bold text-slate-800 mb-4">핫스팟 분석</h4><div class="h-64"><canvas id="donutChart"></canvas></div></div>
+                </div>
+            </section>
 
-                    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:border-indigo-300 transition-colors group">
-                        <div class="flex justify-between items-start mb-3">
-                            <div class="flex items-center gap-2">
-                                <span id="light-prod" class="status-light light-red"></span>
-                                <h4 class="font-bold text-slate-700">2. 생산 실적 (Production)</h4>
-                            </div>
-                            <i class="fas fa-industry text-slate-200 text-2xl group-hover:text-indigo-100 transition-colors"></i>
-                        </div>
-                        <p class="text-xs text-slate-500 mb-4 bg-slate-50 p-2 rounded border border-slate-100">
-                            <span class="font-bold text-indigo-600">Guideline:</span> <b>MES 생산일보</b> 또는 <b>생산관리대장(사진/스캔)</b>을 업로드하세요.
-                        </p>
-                        <label class="w-full block text-center border-2 border-dashed border-slate-300 rounded-lg p-3 hover:bg-slate-50 hover:border-indigo-400 cursor-pointer transition-all drop-zone" id="drop-prod">
-                            <div class="pointer-events-none">
-                                <i class="fas fa-camera text-slate-400 mb-1"></i>
-                                <span class="block text-xs font-bold text-slate-500">촬영/스캔 업로드</span>
-                            </div>
-                            <input type="file" class="hidden" onchange="processAI('prod', this)">
-                        </label>
-                        <div id="res-prod" class="hidden mt-3 text-xs text-green-600 font-bold bg-green-50 p-2 rounded text-center"></div>
-                    </div>
+            <section id="tab-lca" class="hidden fade-in max-w-7xl mx-auto">
+                <div class="flex justify-between items-center mb-6">
+                    <div><h2 class="text-2xl font-bold text-slate-800">정밀 전과정평가 (LCA)</h2><p class="text-sm text-slate-500 mt-1">Scope 1, 2, 3 Full Coverage Calculation</p></div>
+                </div>
 
-                    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:border-indigo-300 transition-colors group">
-                        <div class="flex justify-between items-start mb-3">
-                            <div class="flex items-center gap-2">
-                                <span id="light-energy" class="status-light light-red"></span>
-                                <h4 class="font-bold text-slate-700">3. 에너지 (Energy)</h4>
+                <div class="grid grid-cols-12 gap-8">
+                    <div class="col-span-8 space-y-6 pb-20">
+                        
+                        <div class="bg-white p-6 rounded-xl border shadow-sm">
+                            <h5 class="font-bold text-slate-800 mb-4 border-l-4 border-indigo-600 pl-3">1. 제품 정의 (Goal & Scope)</h5>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div><label class="text-xs font-bold text-slate-500 block mb-1">카테고리</label>
+                                    <select id="lca-cat" class="input-field bg-slate-50" onchange="setDefaults()"></select></div>
+                                <div><label class="text-xs font-bold text-slate-500 block mb-1">생산 국가 (Grid Mix)</label>
+                                    <select id="lca-grid" class="input-field" onchange="calc()"></select></div>
                             </div>
-                            <i class="fas fa-bolt text-slate-200 text-2xl group-hover:text-indigo-100 transition-colors"></i>
                         </div>
-                        <p class="text-xs text-slate-500 mb-4 bg-slate-50 p-2 rounded border border-slate-100">
-                            <span class="font-bold text-indigo-600">Guideline:</span> <b>한전 전기요금 고지서</b> 및 <b>도시가스 청구서(PDF)</b>가 필요합니다.
-                        </p>
-                        <label class="w-full block text-center border-2 border-dashed border-slate-300 rounded-lg p-3 hover:bg-slate-50 hover:border-indigo-400 cursor-pointer transition-all drop-zone" id="drop-energy">
-                            <div class="pointer-events-none">
-                                <i class="fas fa-file-invoice text-slate-400 mb-1"></i>
-                                <span class="block text-xs font-bold text-slate-500">고지서 드래그&드롭</span>
-                            </div>
-                            <input type="file" class="hidden" onchange="processAI('energy', this)">
-                        </label>
-                        <div id="res-energy" class="hidden mt-3 text-xs text-green-600 font-bold bg-green-50 p-2 rounded text-center"></div>
-                    </div>
 
-                    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:border-indigo-300 transition-colors group">
-                        <div class="flex justify-between items-start mb-3">
-                            <div class="flex items-center gap-2">
-                                <span id="light-water" class="status-light light-red"></span>
-                                <h4 class="font-bold text-slate-700">4. 용수/폐기물</h4>
+                        <div class="bg-white rounded-xl border shadow-sm overflow-hidden">
+                            <div class="bg-slate-50 px-6 py-4 border-b flex justify-between items-center">
+                                <h5 class="font-bold text-slate-800 border-l-4 border-indigo-600 pl-3 leading-none">2. 자재명세서 (Scope 3 Upstream)</h5>
+                                <button onclick="addBomRow()" class="text-xs bg-white border border-indigo-200 text-indigo-700 px-3 py-1.5 rounded font-bold hover:bg-indigo-50 shadow-sm">+ 자재 추가</button>
                             </div>
-                            <i class="fas fa-tint text-slate-200 text-2xl group-hover:text-indigo-100 transition-colors"></i>
+                            <table class="w-full text-sm text-left">
+                                <thead class="bg-white text-xs text-slate-500 uppercase border-b">
+                                    <tr><th class="px-6 py-3">자재 (Material)</th><th>배경 공정 (Background)</th><th class="text-right">중량 (kg)</th><th class="text-center">삭제</th></tr>
+                                </thead>
+                                <tbody id="bom-body"></tbody>
+                            </table>
+                            <div class="p-3 bg-yellow-50 text-[11px] text-yellow-800 flex gap-2 items-center border-t border-yellow-100">
+                                <i class="fas fa-info-circle"></i> 배경 공정은 원재료 생산 시 발생하는 간접 배출(Upstream)입니다.
+                            </div>
                         </div>
-                        <p class="text-xs text-slate-500 mb-4 bg-slate-50 p-2 rounded border border-slate-100">
-                            <span class="font-bold text-indigo-600">Guideline:</span> <b>수도요금 고지서</b> 또는 <b>올바로(Allbaro) 실적 대장</b>을 올리세요.
-                        </p>
-                        <label class="w-full block text-center border-2 border-dashed border-slate-300 rounded-lg p-3 hover:bg-slate-50 hover:border-indigo-400 cursor-pointer transition-all drop-zone" id="drop-water">
-                            <div class="pointer-events-none">
-                                <i class="fas fa-file-alt text-slate-400 mb-1"></i>
-                                <span class="block text-xs font-bold text-slate-500">서류 업로드</span>
-                            </div>
-                            <input type="file" class="hidden" onchange="processAI('water', this)">
-                        </label>
-                        <div id="res-water" class="hidden mt-3 text-xs text-green-600 font-bold bg-green-50 p-2 rounded text-center"></div>
-                    </div>
 
-                    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:border-indigo-300 transition-colors group col-span-2">
-                        <div class="flex justify-between items-start mb-3">
-                            <div class="flex items-center gap-2">
-                                <span id="light-logi" class="status-light light-red"></span>
-                                <h4 class="font-bold text-slate-700">5. 물류/포장 (Pkg & Logistics)</h4>
+                        <div class="bg-white p-6 rounded-xl border shadow-sm ring-1 ring-indigo-100">
+                            <div class="flex justify-between items-center mb-4">
+                                <h5 class="font-bold text-slate-800 border-l-4 border-indigo-600 pl-3">3. 제조 공정 에너지 (Scope 1 & 2)</h5>
+                                <span class="text-[10px] bg-indigo-100 text-indigo-700 px-2 py-1 rounded font-bold">Gate-to-Gate</span>
                             </div>
-                            <i class="fas fa-shipping-fast text-slate-200 text-2xl group-hover:text-indigo-100 transition-colors"></i>
+                            <div class="grid grid-cols-3 gap-4">
+                                <div>
+                                    <label class="text-xs font-bold text-slate-500 block mb-1">산업용 전력 (Electricity)</label>
+                                    <div class="relative"><input type="number" id="inp-elec" class="input-field pr-12" value="0" min="0" oninput="calc()"><span class="absolute right-3 top-2 text-xs text-slate-400">kWh</span></div>
+                                </div>
+                                <div>
+                                    <label class="text-xs font-bold text-slate-500 block mb-1">도시가스/LNG (Fuel)</label>
+                                    <div class="relative"><input type="number" id="inp-gas" class="input-field pr-12" value="0" min="0" oninput="calc()"><span class="absolute right-3 top-2 text-xs text-slate-400">MJ</span></div>
+                                </div>
+                                <div>
+                                    <label class="text-xs font-bold text-slate-500 block mb-1">공업용수 (Water)</label>
+                                    <div class="relative"><input type="number" id="inp-water" class="input-field pr-12" value="0" min="0" oninput="calc()"><span class="absolute right-3 top-2 text-xs text-slate-400">ton</span></div>
+                                </div>
+                            </div>
+                            <p class="text-[10px] text-slate-400 mt-2">* 제품 1단위 생산에 투입된 실제 에너지량을 입력하세요. (전력 배출계수는 선택한 국가 Grid 자동 적용)</p>
                         </div>
-                        <div class="flex gap-4">
-                            <div class="flex-1">
-                                <p class="text-xs text-slate-500 mb-4 bg-slate-50 p-2 rounded border border-slate-100">
-                                    <span class="font-bold text-indigo-600">Guideline:</span> <b>수출신고필증</b> (목적지/중량) 및 <b>포장사양서</b>를 업로드하세요.
-                                </p>
+
+                        <div class="bg-white p-6 rounded-xl border shadow-sm">
+                            <h5 class="font-bold text-slate-800 mb-4 border-l-4 border-indigo-600 pl-3">4. 포장 및 물류 (Packaging & Logistics)</h5>
+                            <div class="grid grid-cols-2 gap-4 mb-4">
+                                <div><label class="text-xs font-bold text-slate-500 block mb-1">포장재</label><select id="lca-pack" class="input-field" onchange="calc()"></select></div>
+                                <div><label class="text-xs font-bold text-slate-500 block mb-1">포장 중량 (kg)</label><input type="number" id="lca-pweight" class="input-field" value="0.05" min="0" step="0.001" oninput="calc()"></div>
                             </div>
-                            <div class="flex-1">
-                                <label class="w-full h-full flex flex-col justify-center items-center border-2 border-dashed border-slate-300 rounded-lg p-3 hover:bg-slate-50 hover:border-indigo-400 cursor-pointer transition-all drop-zone" id="drop-logi">
-                                    <div class="pointer-events-none">
-                                        <i class="fas fa-box-open text-slate-400 mb-1"></i>
-                                        <span class="block text-xs font-bold text-slate-500">파일 찾기 또는 드래그</span>
+                            <div class="grid grid-cols-2 gap-4 border-t pt-4">
+                                <div><label class="text-xs font-bold text-slate-500 block mb-1">운송 수단/거리</label>
+                                    <div class="flex gap-2">
+                                        <select id="lca-mode" class="input-field w-1/2" onchange="calc()"><option value="ship">Ship</option><option value="air">Air</option><option value="road">Truck</option></select>
+                                        <input type="number" id="lca-dist" class="input-field w-1/2" value="10000" min="0" oninput="calc()" placeholder="km">
                                     </div>
-                                    <input type="file" class="hidden" onchange="processAI('logi', this)">
-                                </label>
+                                </div>
+                                <div><label class="text-xs font-bold text-slate-500 block mb-1">매장 보관 (일)</label><input type="number" id="lca-retail" class="input-field" value="30" min="0" oninput="calc()"></div>
                             </div>
                         </div>
-                        <div id="res-logi" class="hidden mt-3 text-xs text-green-600 font-bold bg-green-50 p-2 rounded text-center"></div>
+
+                        <div class="bg-white p-6 rounded-xl border shadow-sm">
+                            <h5 class="font-bold text-slate-800 mb-4 border-l-4 border-indigo-600 pl-3">5. 사용 및 폐기 (Use & End-of-Life)</h5>
+                            <div class="grid grid-cols-4 gap-4">
+                                <div><label class="text-xs font-bold text-slate-500 block mb-1">수명 (년)</label><input type="number" id="lca-life" class="input-field input-readonly" readonly></div>
+                                <div><label class="text-xs font-bold text-slate-500 block mb-1">연간 세탁 (회)</label><input type="number" id="lca-wash" class="input-field input-readonly" readonly></div>
+                                <div><label class="text-xs font-bold text-indigo-600 block mb-1">세탁 온도 (℃)</label><input type="number" id="lca-temp" class="input-field font-bold text-indigo-700 bg-indigo-50" min="0" oninput="calc()"></div>
+                                <div><label class="text-xs font-bold text-slate-500 block mb-1">폐기 방식</label><select id="lca-eol-mode" class="input-field" onchange="calc()"><option value="landfill">매립</option><option value="incineration">소각</option><option value="recycle">재활용</option></select></div>
+                            </div>
+                        </div>
                     </div>
 
+                    <div class="col-span-4">
+                        <div class="bg-slate-900 text-white rounded-xl p-6 shadow-xl sticky top-6">
+                            <h5 class="text-xs font-bold text-slate-400 mb-4 tracking-widest">REAL-TIME GWP</h5>
+                            <div class="text-4xl font-black mb-6"><span id="live-total">0.00</span> <span class="text-base font-normal text-slate-400">kgCO2e</span></div>
+                            <div class="space-y-3 text-sm border-t border-slate-700 pt-4">
+                                <div class="flex justify-between text-slate-300"><span>🧱 Materials</span><span id="res-mat" class="font-mono text-white">0.00</span></div>
+                                <div class="flex justify-between text-yellow-400 font-bold"><span>🏭 Mfg Energy</span><span id="res-eng" class="font-mono">0.00</span></div>
+                                <div class="flex justify-between text-slate-300"><span>📦 Pack/Logis</span><span id="res-log" class="font-mono text-white">0.00</span></div>
+                                <div class="flex justify-between text-slate-300"><span>👕 Use Phase</span><span id="res-use" class="font-mono text-white">0.00</span></div>
+                                <div class="flex justify-between text-slate-300"><span>♻️ End of Life</span><span id="res-eol" class="font-mono text-white">0.00</span></div>
+                            </div>
+                            <button onclick="saveCalc()" class="w-full bg-indigo-600 hover:bg-indigo-500 mt-8 py-3 rounded-lg font-bold shadow-lg transition">결과 확정 및 저장</button>
+                        </div>
+                    </div>
                 </div>
-            </div>
+            </section>
 
-            <div class="p-6 bg-white border-t border-slate-100 flex justify-end gap-3">
-                <button onclick="closeAIModal()" class="px-5 py-2.5 bg-slate-100 text-slate-600 font-bold rounded-lg text-sm hover:bg-slate-200 transition-colors">닫기 (Close)</button>
-                <button onclick="closeAIModal(); calculatePEF();" class="px-5 py-2.5 bg-indigo-600 text-white font-bold rounded-lg text-sm hover:bg-indigo-700 transition-colors shadow-lg flex items-center gap-2">
-                    <i class="fas fa-check"></i> 입력 완료 및 계산
-                </button>
-            </div>
-        </div>
-    </div>
+            <section id="tab-report" class="hidden fade-in max-w-5xl mx-auto">
+                <header class="flex justify-between items-end mb-6">
+                    <h2 class="text-2xl font-bold text-slate-800">인증 리포트</h2>
+                    <button onclick="window.print()" class="bg-white border px-4 py-2 rounded-lg text-sm font-bold shadow hover:bg-slate-50"><i class="fas fa-print mr-2"></i>PDF 출력</button>
+                </header>
+                <div class="report-paper">
+                    <div class="border-b-2 border-black pb-4 mb-8 flex justify-between items-end">
+                        <h1 class="text-3xl font-bold font-serif">LCA VERIFICATION REPORT</h1>
+                        <div class="text-right text-xs"><p>ISO 14067 / EU PEFCR</p><p>Doc ID: KSIKR-2025-009</p></div>
+                    </div>
+                    <div class="mb-8">
+                        <h2 class="font-bold border-b border-gray-400 mb-2">1. GENERAL INFORMATION</h2>
+                        <table class="report-table">
+                            <tr><th width="30%">Product Category</th><td id="rep-cat">--</td></tr>
+                            <tr><th>Production Location</th><td id="rep-grid">--</td></tr>
+                            <tr><th>Scope</th><td>Cradle-to-Grave</td></tr>
+                        </table>
+                    </div>
+                    <div class="mb-8">
+                        <h2 class="font-bold border-b border-gray-400 mb-2">2. ENERGY INPUTS (Scope 1 & 2)</h2>
+                        <table class="report-table">
+                            <tr><th>Electricity</th><td id="rep-elec">-- kWh</td></tr>
+                            <tr><th>Fuel (Gas)</th><td id="rep-gas">-- MJ</td></tr>
+                            <tr><th>Water</th><td id="rep-water">-- ton</td></tr>
+                        </table>
+                    </div>
+                    <div class="mb-8">
+                        <h2 class="font-bold border-b border-gray-400 mb-2">3. IMPACT RESULTS (GWP)</h2>
+                        <table class="report-table">
+                            <tr style="background:#000; color:white;"><th>Impact Category</th><th>Unit</th><th>Result</th></tr>
+                            <tr><td><strong>Climate Change</strong></td><td>kg CO2 eq</td><td class="font-bold text-lg" id="rep-total">--</td></tr>
+                        </table>
+                    </div>
+                </div>
+            </section>
 
-    <div id="settingsModal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-overlay"><div class="bg-white p-10 rounded">설정 모달</div></div>
+            <section id="tab-supply" class="hidden fade-in max-w-6xl mx-auto">
+                <header class="flex justify-between items-end mb-6"><div><h2 class="text-2xl font-bold text-slate-800">공급망 데이터</h2></div><button class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-bold shadow" onclick="alert('준비중')">+ 협력사 추가</button></header>
+                <div class="bg-white rounded-xl shadow border overflow-hidden"><table class="w-full text-sm text-left"><thead class="bg-slate-50 border-b"><tr><th class="px-6 py-3">협력사명</th><th>공급 자재</th><th>배출계수</th><th>상태</th></tr></thead><tbody id="supply-body"></tbody></table></div>
+            </section>
+            <section id="tab-history" class="hidden fade-in max-w-6xl mx-auto">
+                <header class="mb-6"><h2 class="text-2xl font-bold text-slate-800">산정 이력</h2></header>
+                <div class="bg-white rounded-xl shadow border overflow-hidden"><table class="w-full text-sm text-left"><thead class="bg-slate-50 border-b"><tr><th class="px-6 py-3">날짜</th><th>제품명</th><th>결과</th><th>상태</th></tr></thead><tbody id="history-body"></tbody></table></div>
+            </section>
 
-    <div class="hidden">
-        <select id="sourcingSelect"><option value="regional">Regional</option></select>
-        <select id="washTemp"><option value="40">40</option></select>
-        <input type="number" id="washInput" value="50">
+        </main>
     </div>
 
     <script>
-        // --- 1. Global Navigation & Setup ---
+        // --- Init ---
+        function init() {
+            const catSel = document.getElementById('lca-cat');
+            Object.keys(PEF_CATS).forEach(k => catSel.innerHTML += `<option value="${k}">${PEF_CATS[k].name}</option>`);
+            
+            const gridSel = document.getElementById('lca-grid');
+            Object.keys(GRID_DB).forEach(k => gridSel.innerHTML += `<option value="${k}">${GRID_DB[k].name}</option>`);
+
+            const packSel = document.getElementById('lca-pack');
+            Object.keys(PACK_DB).forEach(k => packSel.innerHTML += `<option value="${k}">${PACK_DB[k].name}</option>`);
+
+            loadSupply(); 
+            loadHistory(); 
+            renderCharts(); 
+            addBomRow(); 
+            setDefaults();
+        }
+
         function switchTab(id) {
-            document.querySelectorAll('main section').forEach(s => s.classList.add('hidden'));
-            document.getElementById(id).classList.remove('hidden');
-            document.querySelectorAll('nav button').forEach(b => b.classList.remove('nav-active'));
-            document.getElementById('nav-'+id).classList.add('nav-active');
-        }
-        function openSettingsModal(){ document.getElementById('settingsModal').classList.remove('hidden'); setTimeout(()=>document.getElementById('settingsModal').classList.add('hidden'), 1000); }
-
-        // --- 2. Modal Controls ---
-        function openAIModal() {
-            document.getElementById('aiModal').classList.remove('hidden');
-        }
-        function closeAIModal() {
-            document.getElementById('aiModal').classList.add('hidden');
+            document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
+            document.getElementById('tab-'+id).classList.remove('hidden');
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('nav-active'));
+            document.getElementById('btn-'+id).classList.add('nav-active');
         }
 
-        // --- 3. Drag & Drop + AI Processing Logic ---
-        document.addEventListener('DOMContentLoaded', () => {
-            // Drag & Drop Listeners
-            const dropZones = document.querySelectorAll('.drop-zone');
-            dropZones.forEach(zone => {
-                zone.addEventListener('dragover', (e) => {
-                    e.preventDefault();
-                    zone.classList.add('drag-over');
-                });
-                zone.addEventListener('dragleave', (e) => {
-                    e.preventDefault();
-                    zone.classList.remove('drag-over');
-                });
-                zone.addEventListener('drop', (e) => {
-                    e.preventDefault();
-                    zone.classList.remove('drag-over');
-                    const files = e.dataTransfer.files;
-                    if(files.length > 0) {
-                        // Extract type from ID (drop-bom -> bom)
-                        const type = zone.id.split('-')[1];
-                        // Call process logic with mocked file input structure
-                        processAI(type, { files: files }); 
-                    }
-                });
-            });
-            
-            // Initial Setup
-            updateMainChecklist();
-        });
+        // --- Core Logic ---
+        function setDefaults() {
+            const cat = document.getElementById('lca-cat').value;
+            const data = PEF_CATS[cat];
+            document.getElementById('lca-life').value = data.life;
+            document.getElementById('lca-wash').value = data.wash;
+            document.getElementById('lca-temp').value = data.temp;
+            calc();
+        }
 
-        // The Core AI Simulation Function
-        // 1. Simulates analysis delay
-        // 2. Updates Traffic Light in Modal
-        // 3. AUTO-FILLS the Main Form Inputs
-        function processAI(type, input) {
-            if (!input.files || input.files.length === 0) return;
-            const file = input.files[0];
-            
-            const light = document.getElementById(`light-${type}`);
-            const dropArea = document.getElementById(`drop-${type}`).querySelector('div');
-            const resultDiv = document.getElementById(`res-${type}`);
+        function addBomRow() {
+            const tbody = document.getElementById('bom-body');
+            const rowId = 'row-' + Date.now();
+            const tr = document.createElement('tr');
+            tr.id = rowId;
+            tr.className = "border-b hover:bg-slate-50";
+            tr.innerHTML = `
+                <td class="px-6 py-3"><select class="w-full p-2 border rounded text-sm bg-white mat-select" onchange="calc()">${Object.keys(MATERIAL_DB).map(k => `<option value="${k}">${MATERIAL_DB[k].name}</option>`).join('')}</select></td>
+                <td><select class="w-full p-2 border rounded text-sm bg-white proc-select" onchange="calc()">${Object.keys(PROCESS_DB).map(k => `<option value="${k}">${PROCESS_DB[k].name}</option>`).join('')}</select></td>
+                <td class="text-right"><input type="number" class="w-24 p-2 border rounded text-right text-sm weight-input" value="0.2" step="0.01" min="0" oninput="calc()"></td>
+                <td class="text-center"><button onclick="document.getElementById('${rowId}').remove();calc()" class="text-slate-400 hover:text-red-500"><i class="fas fa-trash"></i></button></td>`;
+            tbody.appendChild(tr);
+            calc();
+        }
 
-            // Loading State
-            light.className = 'status-light light-yellow';
-            const originalContent = dropArea.innerHTML;
-            dropArea.innerHTML = `<i class="fas fa-circle-notch fa-spin text-indigo-500"></i><span class="block text-xs font-bold text-indigo-500">AI 분석 중...</span>`;
+        function calc() {
+            const gridFactor = GRID_DB[document.getElementById('lca-grid').value].factor;
 
-            // Simulate Delay
-            setTimeout(() => {
-                // Success State
-                light.className = 'status-light light-green';
+            // 1. Material & Background Process (Scope 3 Upstream)
+            let sumMat = 0, totalMatWeight = 0;
+            const matsUsed = [];
+            document.querySelectorAll('#bom-body tr').forEach(r => {
+                const w = parseFloat(r.querySelector('.weight-input').value) || 0;
+                totalMatWeight += w;
+                const m = MATERIAL_DB[r.querySelector('.mat-select').value];
+                const p = PROCESS_DB[r.querySelector('.proc-select').value]; // Background Process
                 
-                let msg = "";
-                // *** DATA MAPPING: Modal -> Main Form ***
-                if(type === 'bom') {
-                    msg = `✅ '${file.name}' 분석 완료: 2개 자재 매핑됨`;
-                    const tbody = document.getElementById('material-review-body');
-                    tbody.innerHTML = `
-                        <tr class="border-b bg-green-50/50"><td class="px-5 py-3">Upper Poly</td><td class="px-5 py-3 text-indigo-700 font-bold">Polyester (Virgin)</td><td class="px-5 py-3 text-right"><input type="number" class="w-16 border rounded text-right p-1 text-xs bg-green-50 check-trigger" value="0.45"></td><td class="px-5 py-3 text-center text-green-500"><i class="fas fa-check"></i></td></tr>
-                        <tr class="border-b bg-green-50/50"><td class="px-5 py-3">Outsole Rubber</td><td class="px-5 py-3 text-indigo-700 font-bold">Rubber (Syn)</td><td class="px-5 py-3 text-right"><input type="number" class="w-16 border rounded text-right p-1 text-xs bg-green-50 check-trigger" value="0.30"></td><td class="px-5 py-3 text-center text-green-500"><i class="fas fa-check"></i></td></tr>
-                    `;
-                } 
-                else if(type === 'prod') {
-                    msg = `✅ '${file.name}' 분석 완료: 월간 15,000족 확인`;
-                }
-                else if(type === 'energy') {
-                    msg = `✅ '${file.name}' 분석 완료: 전력 4,500kWh, 가스 120MJ`;
-                    const elec = document.getElementById('elecInput');
-                    const gas = document.getElementById('gasInput');
-                    elec.value = 2.5; elec.classList.add('proxy-data');
-                    gas.value = 0.5; gas.classList.add('proxy-data');
-                }
-                else if(type === 'water') {
-                    msg = `✅ '${file.name}' 분석 완료: 용수 150L, 폐기물 0.05kg`;
-                    const wat = document.getElementById('waterInput');
-                    const wst = document.getElementById('wasteInput');
-                    wat.value = 150; wat.classList.add('proxy-data');
-                    wst.value = 0.05; wst.classList.add('proxy-data');
-                }
-                else if(type === 'logi') {
-                    msg = `✅ '${file.name}' 분석 완료: Hamburg, 19000km`;
-                    const dist = document.getElementById('inlandDist');
-                    const pkgP = document.getElementById('pkgPlasticInput');
-                    const pkgC = document.getElementById('pkgPaperInput');
-                    dist.value = 100; dist.classList.add('proxy-data');
-                    pkgP.value = 0.05; pkgP.classList.add('proxy-data');
-                    pkgC.value = 0.2; pkgC.classList.add('proxy-data');
-                }
+                // Mat EF + Background Energy * Grid (Estimating Upstream)
+                sumMat += w * (m.ef * (1 + m.waste) + (p.energy * gridFactor));
+                matsUsed.push(m.name);
+            });
 
-                // Restore UI
-                dropArea.innerHTML = `<i class="fas fa-check-circle text-green-500 mb-1"></i><span class="block text-xs font-bold text-green-600">입력됨</span>`;
-                resultDiv.innerText = msg;
-                resultDiv.classList.remove('hidden');
+            // 2. Manufacturing Energy (Scope 1 & 2 - Gate to Gate) [ADDED]
+            const elec = parseFloat(document.getElementById('inp-elec').value) || 0;
+            const gas = parseFloat(document.getElementById('inp-gas').value) || 0;
+            const water = parseFloat(document.getElementById('inp-water').value) || 0;
 
-                // Trigger Main Form Checklist
-                updateMainChecklist();
+            const sumElec = elec * gridFactor; // Scope 2
+            const sumGas = gas * 0.202; // Scope 1 (LNG approx 0.2 kgCO2e/MJ)
+            const sumWater = water * 0.3; // Water footprint approx
+            const sumEng = sumElec + sumGas + sumWater;
 
-            }, 1200);
+            // 3. Packaging & Logistics
+            const packW = parseFloat(document.getElementById('lca-pweight').value) || 0;
+            const sumPack = packW * PACK_DB[document.getElementById('lca-pack').value].ef;
+            const isAir = document.getElementById('lca-mode').value === 'air';
+            const sumLog = ((totalMatWeight + packW) / 1000) * parseFloat(document.getElementById('lca-dist').value || 0) * (isAir ? 0.6 : 0.015);
+
+            // 4. Use Phase (Washing)
+            const retail = parseFloat(document.getElementById('lca-retail').value || 0) * 0.05 * gridFactor;
+            const life = parseFloat(document.getElementById('lca-life').value || 1);
+            const wash = parseFloat(document.getElementById('lca-wash').value || 0);
+            const temp = parseFloat(document.getElementById('lca-temp').value || 30);
+            const energyPerWash = Math.max(0, 0.3 + ((temp - 30) * 0.015));
+            const sumUse = retail + (life * wash * energyPerWash * gridFactor);
+
+            // 5. EOL
+            const eolMode = document.getElementById('lca-eol-mode').value;
+            const eolFactor = (eolMode === 'recycle') ? -0.5 : (eolMode === 'incineration' ? 1.2 : 0.1);
+            const sumEol = (totalMatWeight + packW) * eolFactor;
+
+            // Total
+            const total = Math.max(0, sumMat + sumEng + sumPack + sumLog + sumUse + sumEol);
+
+            // UI Updates
+            document.getElementById('live-total').innerText = total.toFixed(2);
+            document.getElementById('res-mat').innerText = sumMat.toFixed(2);
+            document.getElementById('res-eng').innerText = sumEng.toFixed(2); // New Line
+            document.getElementById('res-log').innerText = (sumPack + sumLog).toFixed(2);
+            document.getElementById('res-use').innerText = sumUse.toFixed(2);
+            document.getElementById('res-eol').innerText = sumEol.toFixed(2);
+
+            // Report Updates
+            document.getElementById('rep-total').innerText = total.toFixed(2);
+            document.getElementById('rep-cat').innerText = PEF_CATS[document.getElementById('lca-cat').value].name;
+            document.getElementById('rep-grid').innerText = GRID_DB[document.getElementById('lca-grid').value].name;
+            document.getElementById('rep-elec').innerText = elec.toFixed(1) + " kWh";
+            document.getElementById('rep-gas').innerText = gas.toFixed(1) + " MJ";
+            document.getElementById('rep-water').innerText = water.toFixed(1) + " ton";
+
+            window.appState.totalGWP = total;
+            window.appState.breakdown = [sumMat, sumEng, sumPack + sumLog, sumUse, Math.max(0, sumEol), 0];
+            updateCharts();
         }
 
-        // --- 4. Main Form Checklist Logic ---
-        function updateMainChecklist() {
-            // Check BOM
-            const bomRows = document.querySelectorAll('#material-review-body tr input').length;
-            setCheckStatus('status-bom', bomRows > 0);
-
-            // Check Energy
-            const elec = document.getElementById('elecInput').value;
-            setCheckStatus('status-energy', elec > 0);
-
-            // Check Water
-            const water = document.getElementById('waterInput').value;
-            setCheckStatus('status-water', water > 0);
-
-            // Check Pkg
-            const pkg = document.getElementById('pkgPaperInput').value;
-            setCheckStatus('status-pkg', pkg > 0);
+        // --- Charts & Common ---
+        function saveCalc() {
+            const val = document.getElementById('live-total').innerText;
+            const currentTotal = window.appState.history.reduce((acc, curr) => acc + parseFloat(curr.gwp), 0);
+            const newAvg = ((currentTotal + parseFloat(val)) / (window.appState.history.length + 1)).toFixed(2);
+            document.getElementById('dash-avg-gwp').innerText = newAvg;
+            window.appState.history.unshift({ date: new Date().toISOString().split('T')[0], product: 'New Product', gwp: val, status: 'Draft' });
+            loadHistory(); alert('저장되었습니다.'); switchTab('history');
         }
-
-        function setCheckStatus(id, isDone) {
-            const el = document.getElementById(id);
-            const icon = el.querySelector('.icon-area');
-            if(isDone) {
-                el.classList.remove('check-none');
-                el.classList.add('check-done');
-                icon.className = 'fas fa-check-circle text-lg icon-area';
-            }
+        function loadSupply() { document.getElementById('supply-body').innerHTML = window.appState.suppliers.map(s => `<tr class="border-b"><td class="px-6 py-4">${s.name}</td><td>${s.item}</td><td class="font-mono text-indigo-600">${s.ef}</td><td>Active</td></tr>`).join(''); }
+        function loadHistory() { document.getElementById('history-body').innerHTML = window.appState.history.map(h => `<tr class="border-b"><td class="px-6 py-4">${h.date}</td><td class="font-bold">${h.product}</td><td class="font-bold">${h.gwp}</td><td>${h.status}</td></tr>`).join(''); }
+        
+        let donutChart, mainChart;
+        function renderCharts() {
+            donutChart = new Chart(document.getElementById('donutChart'), { type: 'doughnut', data: { labels: ['Mat','Mfg','Logis','Use','EOL'], datasets: [{ data: [1,1,1,1,1], backgroundColor: ['#4f46e5','#f59e0b','#10b981','#3b82f6','#64748b'], borderWidth:0 }] }, options: { cutout:'70%', plugins:{legend:{display:false}} } });
+            mainChart = new Chart(document.getElementById('mainChart'), { type: 'line', data: { labels: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'], datasets: [{ data:[12,19,15,22,18,25,30,28,24,20,18,22], borderColor:'#4f46e5', tension:0.4, fill:true, backgroundColor:'rgba(79, 70, 229, 0.05)' }] }, options: { maintainAspectRatio:false, plugins:{legend:{display:false}} } });
         }
-
-        function addMaterialRow() {
-            const tbody = document.getElementById('material-review-body');
-            tbody.innerHTML += `<tr class="border-b"><td class="px-5 py-3 italic text-slate-400">Manual</td><td class="px-5 py-3">Select...</td><td class="px-5 py-3 text-right"><input type="number" class="w-16 border rounded text-right p-1 text-xs check-trigger" value="0"></td><td class="px-5 py-3 text-center"></td></tr>`;
-            // Re-attach listeners
-            document.querySelectorAll('.check-trigger').forEach(i => i.addEventListener('input', updateMainChecklist));
-        }
-
-        function fillMissingData() {
-            // Demo helper
-            document.getElementById('elecInput').value = 2.5;
-            document.getElementById('waterInput').value = 150;
-            document.getElementById('pkgPaperInput').value = 0.5;
-            updateMainChecklist();
-        }
-
-        // --- 5. Calculation Logic (v72.0 Engine Simplified for Display) ---
-        function calculatePEF() {
-            // Visualize Result
-            document.getElementById('pef-results').style.opacity = '1';
-            document.getElementById('pef-results').innerHTML = `
-                <div class="bg-indigo-50 p-6 rounded-xl border border-indigo-100 text-center animate-pulse">
-                    <h3 class="text-3xl font-bold text-indigo-700 mb-1">4.12 <span class="text-sm font-normal text-slate-500">kgCO2e</span></h3>
-                    <p class="text-xs text-indigo-400 font-bold mb-4">ISO 14067 검증 완료</p>
-                    <div class="grid grid-cols-3 gap-2 text-[10px] text-slate-500">
-                        <div class="bg-white p-2 rounded shadow-sm">자재<br><b>2.5</b></div>
-                        <div class="bg-white p-2 rounded shadow-sm">공정<br><b>1.1</b></div>
-                        <div class="bg-white p-2 rounded shadow-sm">물류<br><b>0.5</b></div>
-                    </div>
-                </div>
-            `;
-            document.getElementById('final-score').innerHTML = `4.12 <span class="text-xs font-normal">kgCO2e</span>`;
-            document.getElementById('final-score').classList.remove('text-slate-300');
-            document.getElementById('final-score').classList.add('text-indigo-600');
-        }
-
-        // Init
-        document.addEventListener('DOMContentLoaded', () => {
-            document.querySelectorAll('.check-trigger').forEach(i => i.addEventListener('input', updateMainChecklist));
-        });
-
+        function updateCharts() { if(donutChart) { donutChart.data.datasets[0].data = window.appState.breakdown.slice(0,5); donutChart.update(); } }
+        window.addEventListener('DOMContentLoaded', init);
     </script>
 </body>
 </html>
