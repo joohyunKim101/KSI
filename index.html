@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KSIKR - Multi-Industry ESG Platform (v208.0)</title>
+    <title>KSIKR - Fashion ESG Platform (v209.0 Logic Perfect)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -11,20 +11,17 @@
         @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700&display=swap');
         body { font-family: 'Pretendard', sans-serif; background-color: #f8fafc; }
         
+        /* UI Components */
         .nav-item { transition: all 0.2s; border-radius: 12px; font-weight: 600; color: #64748b; font-size: 14px; cursor: pointer; }
         .nav-item:hover { background-color: #f1f5f9; color: #334155; }
         .nav-active { background-color: #7c3aed; color: white; box-shadow: 0 4px 6px -1px rgba(124, 58, 237, 0.3); }
-        
         .kpi-card { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px; transition: all 0.3s; }
         .kpi-card:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
-        
         .input-field { width: 100%; border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px 12px; font-size: 13px; text-align: right; transition: all 0.2s; }
         .input-field:focus { border-color: #7c3aed; outline: none; ring: 2px solid #ddd6fe; background-color: #fff; }
         
         /* Dynamic Theme Colors */
         .theme-text { color: #7c3aed; }
-        .theme-bg { background-color: #7c3aed; }
-        .theme-border { border-color: #7c3aed; }
         
         /* Animations */
         .highlight-input { animation: flash 1s forwards; border: 2px solid #a78bfa !important; }
@@ -34,63 +31,83 @@
         .drop-zone { border: 2px dashed #cbd5e1; transition: all 0.2s; background-color: white; cursor: pointer; position: relative; }
         .drop-zone:hover, .drop-zone.drag-over { border-color: #7c3aed; background-color: #f5f3ff; transform: scale(1.02); }
         .file-badge { position: absolute; top: -8px; right: -8px; background: #ec4899; color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; }
+        .report-paper { width: 210mm; min-height: 297mm; padding: 20mm; margin: 0 auto; background: white; border: 1px solid #e2e8f0; }
     </style>
 </head>
 <body class="text-slate-800 h-screen flex flex-col overflow-hidden">
 
     <script>
+        // Official Grid Coefficients (IEA/Ecoinvent)
+        const GRID_DB = {
+            'KR': { name: 'Korea (0.478)', factor: 0.478 },
+            'CN': { name: 'China (0.584)', factor: 0.584 },
+            'VN': { name: 'Vietnam (0.450)', factor: 0.450 },
+            'US': { name: 'USA (0.380)', factor: 0.380 },
+            'EU': { name: 'EU Avg (0.250)', factor: 0.250 }
+        };
+
         const INDUSTRY_CONFIG = {
             'fashion': {
                 name: 'Fashion (Apparel)',
                 color: '#7c3aed', // Violet
                 cats: { 'tshirt': 'T-Shirts', 'pants': 'Pants', 'jacket': 'Jacket' },
                 chartLabels: ['Top', 'Bottom', 'Outer', 'Acc'],
-                useLabels: { l1: '세탁횟수', l2: '세탁온도', l3: '다림질(hr)' },
-                defaults: { 'tshirt': {v1:52, v2:40, v3:0.5}, 'pants': {v1:100, v2:30, v3:0.2}, 'jacket': {v1:20, v2:30, v3:0} }
+                useLabels: { l1: '세탁횟수(회)', l2: '세탁온도(℃)', l3: '다림질(hr)' },
+                // PEFCR Defaults
+                defaults: { 
+                    'tshirt': {v1:52, v2:40, v3:0.5, dist: 10000}, 
+                    'pants': {v1:100, v2:30, v3:0.2, dist: 10000}, 
+                    'jacket': {v1:20, v2:30, v3:0, dist: 12000} 
+                }
             },
             'footwear': {
                 name: 'Footwear (Shoes)',
                 color: '#ea580c', // Orange
                 cats: { 'sneakers': 'Sneakers', 'boots': 'Boots', 'sandals': 'Sandals' },
-                chartLabels: ['Upper', 'Sole', 'Insole', 'Laces'],
-                useLabels: { l1: '내구연한(년)', l2: '관리횟수', l3: '수선여부' },
-                defaults: { 'sneakers': {v1:2, v2:12, v3:0}, 'boots': {v1:5, v2:4, v3:1}, 'sandals': {v1:1, v2:2, v3:0} }
+                chartLabels: ['Upper', 'Sole', 'Insole', 'Acc'],
+                useLabels: { l1: '내구연한(년)', l2: '관리횟수(회)', l3: '수선(회)' },
+                defaults: { 
+                    'sneakers': {v1:2, v2:12, v3:0, dist: 15000}, 
+                    'boots': {v1:5, v2:4, v3:1, dist: 15000}, 
+                    'sandals': {v1:1, v2:2, v3:0, dist: 10000} 
+                }
             },
             'textile': {
                 name: 'Textile (Fabric)',
                 color: '#059669', // Emerald
-                cats: { 'cotton_fab': 'Cotton 100%', 'poly_fab': 'Poly 100%', 'blend': 'Blended' },
+                cats: { 'cotton': 'Cotton 100%', 'poly': 'Poly 100%', 'blend': 'Blended' },
                 chartLabels: ['Spinning', 'Weaving', 'Dyeing', 'Finish'],
-                useLabels: { l1: '공급수명(년)', l2: '후가공', l3: '로스율(%)' },
-                defaults: { 'cotton_fab': {v1:1, v2:0, v3:5}, 'poly_fab': {v1:1, v2:1, v3:2}, 'blend': {v1:1, v2:1, v3:3} }
+                useLabels: { l1: '공급수명(년)', l2: '후가공(회)', l3: 'Loss율(%)' },
+                defaults: { 
+                    'cotton': {v1:1, v2:0, v3:5, dist: 5000}, 
+                    'poly': {v1:1, v2:1, v3:2, dist: 5000}, 
+                    'blend': {v1:1, v2:1, v3:3, dist: 5000} 
+                }
             }
         };
 
         window.Store = {
-            mode: 'fashion', // Default
+            mode: 'fashion',
             history: [],
-            current: { mat:0, mfg:0, dist:0, use:0, eol:0, total:0, season:'25SS', category:'Item 1' },
+            current: { mat:0, mfg:0, dist:0, use:0, eol:0, total:0, season:'25SS', category:'Top' },
             files: { bom: [], energy: [], logis: [] }
         };
-        
-        // Mock History Data Generator
-        function generateHistory(mode) {
-            const labels = INDUSTRY_CONFIG[mode].chartLabels;
-            return Array.from({length: 5}, (_, i) => ({
-                date: `2025-${10+Math.floor(i/2)}-${10+i*5}`,
-                gwp: (10 + Math.random() * 10).toFixed(2),
-                season: i % 2 === 0 ? '24FW' : '25SS',
-                // Randomly assign a category from the industry
-                category: labels[i % labels.length]
+
+        // Initialize History with Last 7 Seasons
+        function initHistory() {
+            // Mock Data: 22SS ~ 25SS (7 seasons)
+            const seasons = ['22SS', '22FW', '23SS', '23FW', '24SS', '24FW', '25SS'];
+            window.Store.history = seasons.map(s => ({
+                date: '202X-XX-XX',
+                season: s,
+                gwp: (10 + Math.random() * 5).toFixed(2)
             }));
         }
-        window.Store.history = generateHistory('fashion');
     </script>
 
     <div class="h-14 bg-slate-900 text-white flex items-center px-6 justify-between shrink-0 z-50 shadow-lg">
         <div class="flex items-center gap-6">
             <span class="text-lg font-bold tracking-tight">KSIKR <span id="logo-sub" class="text-violet-400">Pro</span></span>
-            
             <div class="flex items-center bg-slate-800 rounded-lg p-1">
                 <button onclick="changeIndustry('fashion')" class="ind-btn px-3 py-1 text-xs font-bold rounded bg-slate-600 text-white" id="btn-mode-fashion">패션(의류)</button>
                 <button onclick="changeIndustry('footwear')" class="ind-btn px-3 py-1 text-xs font-bold rounded text-slate-400 hover:text-white" id="btn-mode-footwear">신발(제화)</button>
@@ -109,35 +126,30 @@
             </nav>
         </aside>
 
-        <main class="flex-1 overflow-y-auto bg-slate-50 p-8 relative transition-colors duration-500" id="main-bg">
+        <main class="flex-1 overflow-y-auto bg-slate-50 p-8 relative transition-colors duration-500">
             
             <section id="tab-dashboard" class="space-y-6">
                 <header class="flex justify-between items-end">
-                    <div><h2 class="text-2xl font-bold text-slate-900" id="dash-title">패션 ESG 통합 관제</h2><p class="text-sm text-slate-500" id="dash-desc">Apparel Lifecycle Monitoring</p></div>
+                    <div><h2 class="text-2xl font-bold text-slate-900" id="dash-title">패션 ESG 통합 관제</h2><p class="text-sm text-slate-500">Season & Category Impact</p></div>
                     <button onclick="switchTab('lca')" id="btn-new-eval" class="bg-violet-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:opacity-90 transition">신규 평가 시작</button>
                 </header>
                 
                 <div class="grid grid-cols-4 gap-4">
-                    <div class="kpi-card"><div class="text-xs text-slate-500 font-bold mb-1">AVG GWP (kg)</div><div class="text-2xl font-bold"><span id="dash-total">--</span></div></div>
-                    <div class="kpi-card"><div class="text-xs text-slate-500 font-bold mb-1">GRADE</div><div class="text-xl font-bold text-green-600">A+ (Eco)</div></div>
+                    <div class="kpi-card"><div class="text-xs text-slate-500 font-bold mb-1">TOTAL GWP (kg)</div><div class="text-2xl font-bold"><span id="dash-total">--</span></div></div>
+                    <div class="kpi-card"><div class="text-xs text-slate-500 font-bold mb-1">ECO GRADE</div><div class="text-xl font-bold text-green-600">A+</div></div>
                     <div class="kpi-card"><div class="text-xs text-slate-500 font-bold mb-1">COST SAVING</div><div class="text-xl font-bold text-blue-600">12.5%</div></div>
                     <div class="kpi-card"><div class="text-xs text-slate-500 font-bold mb-1">STATUS</div><div class="text-xl font-bold text-indigo-600">Optimized</div></div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-6">
                     <div class="bg-white p-6 rounded-2xl border shadow-sm h-80">
-                        <h4 class="font-bold text-slate-800 mb-4 text-sm flex justify-between"><span id="chart-title-1">시즌별 배출량 (Season)</span></h4>
+                        <h4 class="font-bold text-slate-800 mb-4 text-sm flex justify-between"><span>시즌별 배출량 추이 (Past 7 + Current)</span></h4>
                         <div class="h-64"><canvas id="seasonChart"></canvas></div>
                     </div>
                     <div class="bg-white p-6 rounded-2xl border shadow-sm h-80">
-                        <h4 class="font-bold text-slate-800 mb-4 text-sm flex justify-between"><span id="chart-title-2">복종별 핫스팟 (Category)</span></h4>
+                        <h4 class="font-bold text-slate-800 mb-4 text-sm flex justify-between"><span id="chart-title-2">카테고리별 핫스팟</span></h4>
                         <div class="h-64"><canvas id="categoryChart"></canvas></div>
                     </div>
-                </div>
-                
-                <div class="bg-white p-6 rounded-2xl border shadow-sm h-72">
-                    <h4 class="font-bold text-slate-800 mb-4 text-sm">전체 배출 이력 (Total History)</h4>
-                    <div class="h-56"><canvas id="lineChart"></canvas></div>
                 </div>
             </section>
 
@@ -151,11 +163,11 @@
                     </div>
 
                     <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                        <h3 class="font-bold text-slate-800 mb-4 border-l-4 border-gray-500 pl-3 theme-border">1. 제품 및 범위 (Scope)</h3>
+                        <h3 class="font-bold text-slate-800 mb-4 border-l-4 border-gray-500 pl-3 theme-border">1. 제품 및 범위 (Goal & Scope)</h3>
                         <div class="grid grid-cols-3 gap-4">
-                            <div><label class="text-xs font-bold text-slate-500">시즌/배치</label><select class="input-field bg-slate-50"><option>2025 S/S</option><option>2025 F/W</option></select></div>
+                            <div><label class="text-xs font-bold text-slate-500">타겟 시즌</label><select id="p_season" class="input-field bg-slate-50" onchange="runCalc()"><option value="25FW">2025 F/W</option><option value="26SS">2026 S/S</option></select></div>
                             <div><label class="text-xs font-bold text-slate-500">제품군(Category)</label><select id="p_cat" class="input-field bg-slate-50" onchange="applyDefaults()"></select></div>
-                            <div><label class="text-xs font-bold text-slate-500">생산국가</label><select id="p_grid" class="input-field" onchange="runCalc()"><option value="0.478">Korea</option><option value="0.584">China</option></select></div>
+                            <div><label class="text-xs font-bold text-slate-500">생산국가(Grid)</label><select id="p_grid" class="input-field" onchange="runCalc()"></select></div>
                         </div>
                     </div>
 
@@ -186,11 +198,14 @@
                     </div>
 
                     <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                        <h3 class="font-bold text-slate-800 mb-4 border-l-4 border-gray-500 pl-3 theme-border">5. 사용 및 폐기 (Use & EOL)</h3>
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="font-bold text-slate-800 border-l-4 border-gray-500 pl-3 theme-border">5. 사용 및 폐기 (Use & EOL)</h3>
+                            <span class="text-[10px] text-gray-400">*기본값 수정 가능</span>
+                        </div>
                         <div class="grid grid-cols-4 gap-4">
-                            <div><label class="text-xs font-bold theme-text" id="lbl-use-1">세탁횟수</label><input id="p_use1" class="input-field bg-slate-50" readonly></div>
-                            <div><label class="text-xs font-bold theme-text" id="lbl-use-2">세탁온도</label><input id="p_use2" class="input-field bg-slate-50" readonly></div>
-                            <div><label class="text-xs font-bold theme-text" id="lbl-use-3">다림질</label><input id="p_use3" class="input-field bg-slate-50" readonly></div>
+                            <div><label class="text-xs font-bold theme-text" id="lbl-use-1">세탁횟수</label><input type="number" id="p_use1" class="input-field" oninput="runCalc()"></div>
+                            <div><label class="text-xs font-bold theme-text" id="lbl-use-2">세탁온도</label><input type="number" id="p_use2" class="input-field" oninput="runCalc()"></div>
+                            <div><label class="text-xs font-bold theme-text" id="lbl-use-3">다림질</label><input type="number" id="p_use3" class="input-field" oninput="runCalc()"></div>
                             <div><label class="text-xs font-bold text-slate-500">폐기</label><select id="p_eol" class="input-field" onchange="runCalc()"><option value="0.5">소각</option><option value="0.1">매립</option></select></div>
                         </div>
                     </div>
@@ -207,7 +222,7 @@
                             <div class="flex justify-between"><span>Use Phase</span><span id="txt_use">0.00</span></div>
                             <div class="flex justify-between"><span>End of Life</span><span id="txt_eol">0.00</span></div>
                         </div>
-                        <button onclick="saveResult()" id="btn-save" class="w-full bg-violet-600 hover:bg-violet-500 mt-8 py-3 rounded-xl font-bold shadow-lg transform active:scale-95 transition">결과 저장</button>
+                        <button onclick="saveResult()" id="btn-save" class="w-full bg-violet-600 hover:bg-violet-500 mt-8 py-3 rounded-xl font-bold shadow-lg transform active:scale-95 transition">결과 저장 및 대시보드 반영</button>
                     </div>
                 </div>
             </section>
@@ -223,13 +238,13 @@
             <div class="bg-slate-900 text-white px-6 py-4 flex justify-between"><h3 class="font-bold flex items-center gap-2"><i class="fas fa-robot"></i> AI Smart Data Collector</h3><button onclick="closeAI()"><i class="fas fa-times"></i></button></div>
             <div class="flex-1 p-8 grid grid-cols-3 gap-6 bg-slate-50">
                 <div class="drop-zone p-6 text-center rounded-xl bg-white border-2 border-dashed border-indigo-300" onclick="forceApplyData()">
-                    <i class="fas fa-cube text-3xl text-indigo-400 mb-3"></i><h4 class="font-bold text-sm">Scope 3 (자재)</h4><p class="text-xs text-gray-400">Click to Simulate Upload</p>
+                    <i class="fas fa-cube text-3xl text-indigo-400 mb-3"></i><h4 class="font-bold text-sm">Scope 3 (자재)</h4><p class="text-xs text-gray-400">Click to Simulate</p>
                 </div>
                 <div class="drop-zone p-6 text-center rounded-xl bg-white border-2 border-dashed border-yellow-400" onclick="forceApplyData()">
-                    <i class="fas fa-bolt text-3xl text-yellow-500 mb-3"></i><h4 class="font-bold text-sm">Scope 1&2 (에너지)</h4><p class="text-xs text-gray-400">Click to Simulate Upload</p>
+                    <i class="fas fa-bolt text-3xl text-yellow-500 mb-3"></i><h4 class="font-bold text-sm">Scope 1&2 (에너지)</h4><p class="text-xs text-gray-400">Click to Simulate</p>
                 </div>
                 <div class="drop-zone p-6 text-center rounded-xl bg-white border-2 border-dashed border-green-400" onclick="forceApplyData()">
-                    <i class="fas fa-truck text-3xl text-green-500 mb-3"></i><h4 class="font-bold text-sm">Scope 3 (물류)</h4><p class="text-xs text-gray-400">Click to Simulate Upload</p>
+                    <i class="fas fa-truck text-3xl text-green-500 mb-3"></i><h4 class="font-bold text-sm">Scope 3 (물류)</h4><p class="text-xs text-gray-400">Click to Simulate</p>
                 </div>
             </div>
         </div>
@@ -241,56 +256,49 @@
             window.Store.mode = mode;
             const config = INDUSTRY_CONFIG[mode];
             
-            // 1. Update UI Styles
+            // UI Colors
             document.querySelectorAll('.ind-btn').forEach(b => {
                 b.classList.remove('bg-slate-600', 'text-white');
                 b.classList.add('text-slate-400');
             });
-            const activeBtn = document.getElementById(`btn-mode-${mode}`);
-            activeBtn.classList.remove('text-slate-400');
-            activeBtn.classList.add('bg-slate-600', 'text-white');
-
+            document.getElementById(`btn-mode-${mode}`).classList.add('bg-slate-600', 'text-white');
             document.getElementById('logo-sub').className = `font-bold text-[${config.color}]`;
             document.getElementById('header-badge').style.backgroundColor = config.color;
             document.getElementById('header-badge').innerText = `${config.name} Mode`;
             document.getElementById('btn-new-eval').style.backgroundColor = config.color;
             document.getElementById('btn-save').style.backgroundColor = config.color;
             
-            // 2. Update Titles
+            // Labels
             document.getElementById('menu-dash').innerText = (mode === 'fashion' ? '패션' : (mode === 'footwear' ? '신발' : '섬유')) + ' 대시보드';
             document.getElementById('dash-title').innerText = config.name + ' ESG 관제';
             document.getElementById('chart-title-2').innerText = (mode === 'fashion' ? '복종별' : (mode === 'footwear' ? '부위별' : '공정별')) + ' 핫스팟';
 
-            // 3. Update Input Options & Labels
-            const catSel = document.getElementById('p_cat');
-            catSel.innerHTML = '';
-            Object.entries(config.cats).forEach(([k, v]) => {
-                catSel.innerHTML += `<option value="${k}">${v}</option>`;
-            });
+            // Dropdowns
+            const catSel = document.getElementById('p_cat'); catSel.innerHTML = '';
+            Object.entries(config.cats).forEach(([k, v]) => catSel.innerHTML += `<option value="${k}">${v}</option>`);
 
+            const gridSel = document.getElementById('p_grid'); gridSel.innerHTML = '';
+            Object.entries(GRID_DB).forEach(([k, v]) => gridSel.innerHTML += `<option value="${v.factor}">${v.name}</option>`);
+
+            // Input Labels
             document.getElementById('lbl-use-1').innerText = config.useLabels.l1;
             document.getElementById('lbl-use-2').innerText = config.useLabels.l2;
             document.getElementById('lbl-use-3').innerText = config.useLabels.l3;
 
-            // 4. Reset & Reload
-            window.Store.history = generateHistory(mode);
+            // Reset
             setDefaults();
             initCharts();
             updateCharts();
             switchTab('dashboard');
         }
 
-        // --- CORE FUNCTIONS ---
+        // --- CORE LOGIC ---
         function switchTab(id) {
             document.querySelectorAll('section').forEach(el => el.classList.add('hidden'));
             document.getElementById('tab-' + id).classList.remove('hidden');
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('nav-active'));
             document.getElementById('nav-' + id).classList.add('nav-active');
-            
-            // Apply Theme Color to Active Tab
-            const color = INDUSTRY_CONFIG[window.Store.mode].color;
-            document.getElementById('nav-' + id).style.backgroundColor = color;
-
+            document.getElementById('nav-' + id).style.backgroundColor = INDUSTRY_CONFIG[window.Store.mode].color;
             if(id === 'dashboard') updateCharts();
         }
 
@@ -298,17 +306,22 @@
             const mode = window.Store.mode;
             const cat = document.getElementById('p_cat').value;
             const d = INDUSTRY_CONFIG[mode].defaults[cat];
+            
+            // Editable Inputs
             document.getElementById('p_use1').value = d.v1;
             document.getElementById('p_use2').value = d.v2;
             document.getElementById('p_use3').value = d.v3;
+            document.getElementById('p_dist').value = d.dist || 5000;
+            
             runCalc();
         }
 
         function runCalc() {
             let mat = 0; document.querySelectorAll('.p-weight').forEach(el => mat += (parseFloat(el.value)||0) * 2.5);
-            const mfg = (parseFloat(document.getElementById('p_elec').value)||0) * 0.5 + (parseFloat(document.getElementById('p_gas').value)||0) * 0.2;
-            const logis = (parseFloat(document.getElementById('p_dist').value)||0) * 0.001;
-            const use = (parseFloat(document.getElementById('p_use1').value)||0) * 0.3;
+            const grid = parseFloat(document.getElementById('p_grid').value);
+            const mfg = (parseFloat(document.getElementById('p_elec').value)||0) * grid + (parseFloat(document.getElementById('p_gas').value)||0) * 0.2;
+            const logis = (parseFloat(document.getElementById('p_dist').value)||0) * 0.001 * 0.5;
+            const use = (parseFloat(document.getElementById('p_use1').value)||0) * 0.3 * grid; // Simplified
             const eol = 0.5;
             const total = mat + mfg + logis + use + eol;
 
@@ -316,7 +329,8 @@
             ['mat','mfg','dist','use','eol'].forEach((k,i) => document.getElementById(`txt_${k}`).innerText = [mat,mfg,logis,use,eol][i].toFixed(2));
             
             const config = INDUSTRY_CONFIG[window.Store.mode];
-            window.Store.current = { mat, mfg, dist:logis, use, eol, total, category: Object.values(config.cats)[0], season:'25SS' };
+            const season = document.getElementById('p_season').value;
+            window.Store.current = { mat, mfg, dist:logis, use, eol, total, category: Object.values(config.cats)[0], season };
         }
 
         function addBom() {
@@ -326,13 +340,22 @@
 
         function saveResult() {
             const c = window.Store.current;
-            window.Store.history.push({ date: new Date().toISOString().split('T')[0], gwp: c.total, season: c.season, category: c.category });
+            // Push Current Data to History
+            window.Store.history.push({ 
+                date: new Date().toISOString().split('T')[0], 
+                gwp: c.total, 
+                season: c.season, 
+                category: c.category 
+            });
             
+            // Remove Oldest if > 8
+            if(window.Store.history.length > 8) window.Store.history.shift();
+
             // Calc Avg
             const sum = window.Store.history.reduce((a,b)=>a+parseFloat(b.gwp),0);
             document.getElementById('dash-total').innerText = (sum/window.Store.history.length).toFixed(2);
             
-            alert('저장 및 대시보드 반영 완료');
+            alert('저장 완료: 대시보드에 최신 시즌 데이터가 반영되었습니다.');
             switchTab('dashboard');
         }
 
@@ -346,8 +369,8 @@
             runCalc(); closeAI(); alert('AI 데이터 적용 완료');
         }
 
-        // --- CHARTS ---
-        let chartSeason, chartCat, chartLine;
+        // --- CHARTS (7+1 Logic) ---
+        let chartSeason, chartCat;
 
         function initCharts() {
             const config = INDUSTRY_CONFIG[window.Store.mode];
@@ -356,7 +379,7 @@
             if(chartSeason) chartSeason.destroy();
             chartSeason = new Chart(document.getElementById('seasonChart'), {
                 type: 'bar',
-                data: { labels: ['24FW', '25SS'], datasets: [{ label: 'Avg GWP', data: [0, 0], backgroundColor: [color, '#94a3b8'] }] },
+                data: { labels: [], datasets: [{ label: 'Season GWP', data: [], backgroundColor: color }] },
                 options: { responsive: true, maintainAspectRatio: false }
             });
 
@@ -366,26 +389,24 @@
                 data: { labels: config.chartLabels, datasets: [{ label: 'Impact Mix', data: [0, 0, 0, 0], borderColor: color, backgroundColor: color+'33', fill: true }] },
                 options: { responsive: true, maintainAspectRatio: false }
             });
-
-            if(chartLine) chartLine.destroy();
-            chartLine = new Chart(document.getElementById('lineChart'), {
-                type: 'line',
-                data: { labels: [], datasets: [{ label: 'Total GWP', data: [], borderColor: color, tension: 0.4 }] },
-                options: { responsive: true, maintainAspectRatio: false }
-            });
         }
 
         function updateCharts() {
             const hist = window.Store.history;
             const config = INDUSTRY_CONFIG[window.Store.mode];
 
-            // 1. Season
-            const sMap = { '24FW': [], '25SS': [] };
-            hist.forEach(h => { if(sMap[h.season]) sMap[h.season].push(parseFloat(h.gwp)); });
-            chartSeason.data.datasets[0].data = [
-                sMap['24FW'].length ? sMap['24FW'].reduce((a,b)=>a+b,0)/sMap['24FW'].length : 0,
-                sMap['25SS'].length ? sMap['25SS'].reduce((a,b)=>a+b,0)/sMap['25SS'].length : 0
-            ];
+            // 1. Season (Display all history in order)
+            // Logic: History contains past 7 + current added via save
+            // We just show whatever is in history array (which we maintain at size 8 max)
+            const labels = hist.map(h => h.season);
+            const data = hist.map(h => h.gwp);
+            
+            // Highlight Last Bar (Current)
+            const bgColors = labels.map((_, i) => i === labels.length - 1 ? '#ec4899' : config.color);
+
+            chartSeason.data.labels = labels;
+            chartSeason.data.datasets[0].data = data;
+            chartSeason.data.datasets[0].backgroundColor = bgColors;
             chartSeason.update();
 
             // 2. Category (Radar)
@@ -397,20 +418,11 @@
             chartCat.data.datasets[0].borderColor = config.color;
             chartCat.data.datasets[0].backgroundColor = config.color + '33';
             chartCat.update();
-
-            // 3. Line
-            chartLine.data.labels = hist.map(x => x.date);
-            chartLine.data.datasets[0].data = hist.map(x => x.gwp);
-            chartLine.data.datasets[0].borderColor = config.color;
-            chartLine.update();
-
-            // KPI Update
-            const sum = hist.reduce((a,b)=>a+parseFloat(b.gwp), 0);
-            document.getElementById('dash-total').innerText = (hist.length ? (sum/hist.length).toFixed(2) : '0.00');
         }
 
         // START
-        changeIndustry('fashion'); // Default Load
+        initHistory();
+        changeIndustry('fashion');
     </script>
 </body>
 </html>
