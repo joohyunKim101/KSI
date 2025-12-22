@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KSIKR - Enterprise ESG/LCA Platform (v101.3 Logic Fixed)</title>
+    <title>KSIKR - Enterprise ESG/LCA Platform (v102.0 Final Integration)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -27,7 +27,7 @@
         /* AI Modal Styles */
         .modal-overlay { background-color: rgba(15, 23, 42, 0.7); backdrop-filter: blur(4px); transition: all 0.3s; }
         .drop-zone { border: 2px dashed #cbd5e1; transition: all 0.2s; background-color: white; cursor: pointer; }
-        .drop-zone:hover, .drop-zone.drag-over { border-color: #6366f1; background-color: #e0e7ff; transform: scale(1.02); }
+        .drop-zone.drag-over { border-color: #6366f1; background-color: #e0e7ff; transform: scale(1.02); }
     </style>
 </head>
 <body class="text-slate-800 h-screen flex flex-col overflow-hidden">
@@ -36,13 +36,12 @@
         window.appState = {
             totalGWP: 0.00,
             breakdown: [0, 0, 0, 0, 0, 0], 
+            // [DATA] History for Line Chart
             history: [
-                { date: '2025-12-05', product: 'Denim Pants', gwp: 12.4, status: 'Draft' },
-                { date: '2025-11-20', product: 'Basic T-Shirt', gwp: 3.85, status: 'Certified' }
-            ],
-            suppliers: [
-                { name: 'Dongjin Textile', item: 'Cotton Fabric', ef: 1.8 },
-                { name: 'Taekwang Ind', item: 'Polyester', ef: 4.6 }
+                { date: '2025-10-15', product: 'Basic Tee v1', gwp: 12.5 },
+                { date: '2025-11-02', product: 'Summer Line', gwp: 15.2 },
+                { date: '2025-11-20', product: 'Basic T-Shirt', gwp: 3.85 },
+                { date: '2025-12-05', product: 'Denim Pants', gwp: 12.4 }
             ]
         };
 
@@ -54,7 +53,7 @@
     </script>
 
     <div class="h-10 bg-slate-900 text-white flex items-center px-6 text-xs font-medium justify-between z-50 shadow-md shrink-0">
-        <div class="flex items-center gap-4"><span class="bg-indigo-600 px-2 py-0.5 rounded text-[10px] font-bold tracking-wider">KSIKR OFFICIAL</span><span class="text-slate-400">v101.3 Patch</span></div>
+        <div class="flex items-center gap-4"><span class="bg-indigo-600 px-2 py-0.5 rounded text-[10px] font-bold tracking-wider">KSIKR OFFICIAL</span><span class="text-slate-400">v102.0 Final</span></div>
         <div class="flex items-center gap-4"><span class="flex items-center gap-2"><i class="fas fa-database text-slate-500"></i> DB: Ecoinvent 3.9</span></div>
     </div>
 
@@ -79,13 +78,15 @@
                     <button onclick="switchTab('lca')" class="px-5 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-bold shadow-lg hover:bg-indigo-700">신규 평가 시작</button>
                 </header>
                 <div class="grid grid-cols-4 gap-5 mb-8">
-                    <div class="kpi-card">
-                        <div class="flex justify-between mb-2"><span class="text-xs font-bold text-slate-500">AVG GWP</span><i class="fas fa-cloud text-indigo-200"></i></div>
-                        <h3 class="text-2xl font-bold text-slate-800"><span id="dash-avg-gwp">--</span> <span class="text-sm text-slate-400">kg</span></h3>
-                    </div>
-                    <div class="kpi-card"><div class="flex justify-between mb-2"><span class="text-xs font-bold text-slate-500">STATUS</span><i class="fas fa-check-circle text-green-200"></i></div><h3 class="text-xl font-bold text-green-700">Good</h3></div>
+                    <div class="kpi-card"><div class="flex justify-between mb-2"><span class="text-xs font-bold text-slate-500">AVG GWP</span><i class="fas fa-cloud text-indigo-200"></i></div><h3 class="text-2xl font-bold text-slate-800"><span id="dash-avg-gwp">--</span> <span class="text-sm text-slate-400">kg</span></h3></div>
+                    <div class="kpi-card"><div class="flex justify-between mb-2"><span class="text-xs font-bold text-slate-500">COMPLIANCE</span><i class="fas fa-shield-alt text-green-200"></i></div><h3 class="text-xl font-bold text-green-700">ESPR Ready</h3></div>
+                    <div class="kpi-card"><div class="flex justify-between mb-2"><span class="text-xs font-bold text-slate-500">CBAM RISK</span><i class="fas fa-exclamation-triangle text-yellow-200"></i></div><h3 class="text-2xl font-bold text-slate-800">Low</h3></div>
+                    <div class="kpi-card"><div class="flex justify-between mb-2"><span class="text-xs font-bold text-slate-500">COST SAVING</span><i class="fas fa-won-sign text-blue-200"></i></div><h3 class="text-2xl font-bold text-slate-800">₩ 12.5M</h3></div>
                 </div>
-                <div class="bg-white p-6 rounded-2xl border shadow-sm h-64"><canvas id="mainChart"></canvas></div>
+                <div class="grid grid-cols-3 gap-6">
+                    <div class="col-span-2 bg-white p-6 rounded-2xl border shadow-sm"><h4 class="font-bold text-slate-800 mb-4">배출량 추이 (History)</h4><div class="h-64"><canvas id="lineChart"></canvas></div></div>
+                    <div class="col-span-1 bg-white p-6 rounded-2xl border shadow-sm"><h4 class="font-bold text-slate-800 mb-4">평가 핫스팟 (Hotspot)</h4><div class="h-64"><canvas id="donutChart"></canvas></div></div>
+                </div>
             </section>
 
             <section id="tab-lca" class="hidden fade-in max-w-7xl mx-auto">
@@ -193,36 +194,19 @@
         const packSel = document.getElementById('lca-pack');
         Object.keys(PACK_DB).forEach(k => packSel.innerHTML += `<option value="${k}">${PACK_DB[k].name}</option>`);
         
-        // Drag & Drop Logic (Event Listener Based)
+        // Drag & Drop
         const dropZone = document.getElementById('drop-zone');
-        
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            dropZone.addEventListener(eventName, preventDefaults, false);
-        });
-        function preventDefaults(e) { e.preventDefault(); e.stopPropagation(); }
-
-        ['dragenter', 'dragover'].forEach(eventName => {
-            dropZone.addEventListener(eventName, () => dropZone.classList.add('drag-over'), false);
-        });
-        ['dragleave', 'drop'].forEach(eventName => {
-            dropZone.addEventListener(eventName, () => dropZone.classList.remove('drag-over'), false);
-        });
-
-        dropZone.addEventListener('drop', handleDrop, false);
-
-        function handleDrop(e) {
-            const dt = e.dataTransfer;
-            const files = dt.files;
-            if(files.length > 0) {
-                runAIAnalysis(files[0].name);
-            }
-        }
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(e => dropZone.addEventListener(e, ev => { ev.preventDefault(); ev.stopPropagation(); }, false));
+        ['dragenter', 'dragover'].forEach(e => dropZone.addEventListener(e, () => dropZone.classList.add('drag-over'), false));
+        ['dragleave', 'drop'].forEach(e => dropZone.addEventListener(e, () => dropZone.classList.remove('drag-over'), false));
+        dropZone.addEventListener('drop', (e) => { if(e.dataTransfer.files.length) runAIAnalysis(e.dataTransfer.files[0].name); }, false);
 
         // Functions
         function switchTab(id) {
             document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
             document.getElementById('tab-'+id).classList.remove('hidden');
             if(id==='report') updateReport();
+            if(id==='dashboard') updateCharts();
         }
 
         function openAI() { document.getElementById('aiModal').classList.remove('hidden'); }
@@ -236,27 +220,18 @@
             }, 800);
         }
 
-        // [FIXED] Force Apply Logic
         function applyAI() {
-            // 1. Force value injection
             document.getElementById('inp-elec').value = 1.5;
             document.getElementById('inp-gas').value = 0.5;
             
-            // 2. Clear BOM and Inject New Row
             const tbody = document.getElementById('bom-body');
             tbody.innerHTML = '';
             
             const tr = document.createElement('tr');
             tr.className = "border-b";
-            tr.innerHTML = `
-                <td class="p-2"><select class="w-full border p-1 mat-select" onchange="calc()"><option value="cotton_conv">Cotton (Conv)</option></select></td>
-                <td class="p-2"><select class="w-full border p-1 proc-select"><option value="spinning">Spinning</option></select></td>
-                <td class="p-2 text-right"><input type="number" class="w-20 border p-1 text-right weight-input" value="0.25" oninput="calc()"></td>
-                <td class="text-center"><button onclick="this.closest('tr').remove();calc()" class="text-slate-400 hover:text-red-500"><i class="fas fa-trash"></i></button></td>
-            `;
+            tr.innerHTML = `<td class="p-2"><select class="w-full border p-1 mat-select" onchange="calc()"><option value="cotton_conv">Cotton (Conv)</option></select></td><td class="p-2"><select class="w-full border p-1 proc-select"><option value="spinning">Spinning</option></select></td><td class="p-2 text-right"><input type="number" class="w-20 border p-1 text-right weight-input" value="0.25" oninput="calc()"></td><td class="text-center"><button onclick="this.closest('tr').remove();calc()" class="text-slate-400 hover:text-red-500"><i class="fas fa-trash"></i></button></td>`;
             tbody.appendChild(tr);
             
-            // 3. Force Calc and Feedback
             calc();
             closeAI();
             setTimeout(() => alert('AI 데이터가 성공적으로 매핑되었습니다.'), 100);
@@ -266,12 +241,7 @@
             const tbody = document.getElementById('bom-body');
             const tr = document.createElement('tr');
             tr.className = "border-b";
-            tr.innerHTML = `
-                <td class="p-2"><select class="w-full border p-1 mat-select" onchange="calc()">${Object.keys(MATERIAL_DB).map(k=>`<option value="${k}">${MATERIAL_DB[k].name}</option>`).join('')}</select></td>
-                <td class="p-2"><select class="w-full border p-1 proc-select">${Object.keys(PROCESS_DB).map(k=>`<option value="${k}">${PROCESS_DB[k].name}</option>`).join('')}</select></td>
-                <td class="p-2 text-right"><input type="number" class="w-20 border p-1 text-right weight-input" value="0.2" oninput="calc()"></td>
-                <td class="text-center"><button onclick="this.closest('tr').remove();calc()"><i class="fas fa-trash"></i></button></td>
-            `;
+            tr.innerHTML = `<td class="p-2"><select class="w-full border p-1 mat-select" onchange="calc()">${Object.keys(MATERIAL_DB).map(k=>`<option value="${k}">${MATERIAL_DB[k].name}</option>`).join('')}</select></td><td class="p-2"><select class="w-full border p-1 proc-select">${Object.keys(PROCESS_DB).map(k=>`<option value="${k}">${PROCESS_DB[k].name}</option>`).join('')}</select></td><td class="p-2 text-right"><input type="number" class="w-20 border p-1 text-right weight-input" value="0.2" oninput="calc()"></td><td class="text-center"><button onclick="this.closest('tr').remove();calc()"><i class="fas fa-trash"></i></button></td>`;
             tbody.appendChild(tr);
             calc();
         }
@@ -288,26 +258,37 @@
             let sumMat = 0;
             document.querySelectorAll('#bom-body tr').forEach(r => {
                 const w = parseFloat(r.querySelector('.weight-input').value)||0;
-                sumMat += w * 1.8; // Simple factor
+                sumMat += w * 1.8;
             });
             const elec = parseFloat(document.getElementById('inp-elec').value)||0;
             const gas = parseFloat(document.getElementById('inp-gas').value)||0;
             const eng = (elec * 0.478) + (gas * 0.2);
-            const total = sumMat + eng + 0.5; // dummy other val
+            const total = sumMat + eng + 0.5;
             
             document.getElementById('live-total').innerText = total.toFixed(2);
             document.getElementById('res-mat').innerText = sumMat.toFixed(2);
             document.getElementById('res-eng').innerText = eng.toFixed(2);
             
-            if(window.myChart) {
-                window.myChart.data.datasets[0].data = [sumMat, eng, 0.2, 5.0, 0.1];
-                window.myChart.update();
+            window.appState.totalGWP = total;
+            window.appState.breakdown = [sumMat, eng, 0.2, 5.0, 0.1]; // Mock breakdown for responsiveness
+            
+            // Real-time chart update if visible
+            if(window.donutChart) {
+                window.donutChart.data.datasets[0].data = window.appState.breakdown;
+                window.donutChart.update();
             }
         }
 
         function saveCalc() {
             const val = document.getElementById('live-total').innerText;
-            document.getElementById('dash-avg-gwp').innerText = val;
+            const today = new Date().toISOString().split('T')[0];
+            window.appState.history.unshift({ date: today, product: 'New Product', gwp: val });
+            
+            // Calc avg
+            const total = window.appState.history.reduce((acc, curr) => acc + parseFloat(curr.gwp), 0);
+            const avg = (total / window.appState.history.length).toFixed(2);
+            document.getElementById('dash-avg-gwp').innerText = avg;
+
             alert('저장되었습니다.');
             switchTab('dashboard');
         }
@@ -328,11 +309,30 @@
             }, 500);
         }
 
+        // Charts Init
+        const lineCtx = document.getElementById('lineChart');
+        const donutCtx = document.getElementById('donutChart');
+        
+        window.lineChart = new Chart(lineCtx, { type: 'line', data: { labels: [], datasets: [{ label: 'GWP Trend', data: [], borderColor: '#4f46e5', tension: 0.4 }] } });
+        window.donutChart = new Chart(donutCtx, { type: 'doughnut', data: { labels: ['Mat','Eng','Log','Use','EOL'], datasets: [{ data: [1,1,1,1,1], backgroundColor: ['#4f46e5','#f59e0b','#10b981','#3b82f6','#64748b'] }] }, options: { cutout:'70%' } });
+
+        function updateCharts() {
+            // Update Line Chart (History)
+            const sortedHistory = [...window.appState.history].sort((a, b) => new Date(a.date) - new Date(b.date));
+            window.lineChart.data.labels = sortedHistory.map(h => h.date);
+            window.lineChart.data.datasets[0].data = sortedHistory.map(h => h.gwp);
+            window.lineChart.update();
+
+            // Update Donut Chart (Current Breakdown)
+            window.donutChart.data.datasets[0].data = window.appState.breakdown;
+            window.donutChart.update();
+        }
+
         // Init Calls
         addBomRow();
         setDefaults();
-        const ctx = document.getElementById('mainChart');
-        window.myChart = new Chart(ctx, {type:'bar', data:{labels:['Mat','Eng','Log','Use','EOL'], datasets:[{label:'GWP', data:[0,0,0,0,0], backgroundColor:'#4f46e5'}]}});
+        // Initial chart render
+        updateCharts(); 
     </script>
 </body>
 </html>
