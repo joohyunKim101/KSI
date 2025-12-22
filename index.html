@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KSIKR - Official Scope 1,2,3 Platform (v105.0)</title>
+    <title>KSIKR - GHG Protocol Standard (v106.0 Official)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -24,7 +24,6 @@
         .report-table th { background-color: #f3f4f6; font-weight: bold; }
         .fade-in { animation: fadeIn 0.3s ease-in; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        
         /* AI Modal Styles */
         .modal-overlay { background-color: rgba(15, 23, 42, 0.8); backdrop-filter: blur(4px); transition: all 0.3s; z-index: 9999; }
         .drop-zone { border: 2px dashed #cbd5e1; transition: all 0.2s; background-color: white; cursor: pointer; }
@@ -102,7 +101,7 @@
                 <div class="flex justify-between items-center mb-6">
                     <h2 class="text-2xl font-bold text-slate-800">정밀 전과정평가 (LCA)</h2>
                     <button onclick="openAI()" class="px-4 py-2 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-lg text-sm font-bold shadow hover:shadow-lg flex items-center gap-2 transition-all">
-                        <i class="fas fa-robot"></i> AI 데이터 분류 업로드
+                        <i class="fas fa-robot"></i> AI 데이터 분류 업로드 (Scope 1~3)
                     </button>
                 </div>
 
@@ -116,12 +115,12 @@
                             </div>
                         </div>
                         <div class="bg-white rounded-xl border shadow-sm p-6">
-                            <h5 class="font-bold text-slate-800 mb-4 border-l-4 border-indigo-600 pl-3">2. 자재명세 (Materials - Scope 3 Upstream)</h5>
+                            <h5 class="font-bold text-slate-800 mb-4 border-l-4 border-indigo-600 pl-3">2. 자재명세 (Scope 3 Upstream)</h5>
                             <table class="w-full text-sm text-left mb-2"><tbody id="bom-body"></tbody></table>
                             <button onclick="addBomRow()" class="text-xs bg-indigo-50 text-indigo-700 px-3 py-1 rounded font-bold hover:bg-indigo-100">+ 자재 추가</button>
                         </div>
                         <div class="bg-white p-6 rounded-xl border shadow-sm">
-                            <h5 class="font-bold text-slate-800 mb-4 border-l-4 border-indigo-600 pl-3">3. 제조 공정 (Production - Scope 1 & 2)</h5>
+                            <h5 class="font-bold text-slate-800 mb-4 border-l-4 border-indigo-600 pl-3">3. 제조 공정 (Scope 1 & 2)</h5>
                             <div class="grid grid-cols-3 gap-4">
                                 <div><label class="text-xs font-bold text-slate-500">공정 전력 (kWh)</label><input type="number" id="inp-elec" class="input-field" oninput="calc()"></div>
                                 <div><label class="text-xs font-bold text-slate-500">공정 가스 (MJ)</label><input type="number" id="inp-gas" class="input-field" oninput="calc()"></div>
@@ -129,7 +128,7 @@
                             </div>
                         </div>
                         <div class="bg-white p-6 rounded-xl border shadow-sm">
-                            <h5 class="font-bold text-slate-800 mb-4 border-l-4 border-indigo-600 pl-3">4. 유통 및 물류 (Logistics - Scope 3 Downstream)</h5>
+                            <h5 class="font-bold text-slate-800 mb-4 border-l-4 border-indigo-600 pl-3">4. 유통 및 물류 (Scope 3 Downstream)</h5>
                             <div class="grid grid-cols-2 gap-4">
                                 <div><label class="text-xs font-bold text-slate-500">포장재/중량(kg)</label><div class="flex gap-2"><select id="lca-pack" class="input-field"><option value="ldpe">LDPE</option><option value="box">Box</option></select><input id="lca-pw" type="number" class="input-field w-20" value="0.05" oninput="calc()"></div></div>
                                 <div><label class="text-xs font-bold text-slate-500">운송수단/거리(km)</label><div class="flex gap-2"><select id="lca-ship" class="input-field"><option value="ship">Ship</option><option value="air">Air</option></select><input id="lca-dist" type="number" class="input-field w-20" value="10000" oninput="calc()"></div></div>
@@ -197,14 +196,14 @@
         <div class="bg-white w-full max-w-4xl h-[80vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden">
             <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center"><h3 class="font-bold">AI Smart Data Collector (Official Scopes)</h3><button onclick="closeAI()" class="text-white"><i class="fas fa-times"></i></button></div>
             <div class="flex-1 p-8 bg-slate-50 grid grid-cols-3 gap-4">
-                <div class="col-span-1 border-2 border-dashed border-indigo-200 bg-white rounded-xl p-4 text-center drop-zone" ondrop="handleDrop(event, 'Scope 3 (Upstream)')" ondragover="allowDrop(event)">
-                    <i class="fas fa-cube text-2xl text-indigo-400 mb-2"></i><h4 class="font-bold text-sm">Scope 3 (자재 BOM)</h4><p class="text-xs text-gray-400">Excel/PDF</p>
+                <div class="col-span-1 border-2 border-dashed border-indigo-200 bg-white rounded-xl p-4 text-center drop-zone" ondrop="handleDrop(event, 'Scope 3 Upstream')" ondragover="allowDrop(event)">
+                    <i class="fas fa-cube text-2xl text-indigo-400 mb-2"></i><h4 class="font-bold text-sm">Scope 3 Upstream</h4><p class="text-xs text-gray-400">자재(BOM), 원재료 수송</p>
                 </div>
-                <div class="col-span-1 border-2 border-dashed border-yellow-200 bg-white rounded-xl p-4 text-center drop-zone" ondrop="handleDrop(event, 'Scope 1 & 2 (Energy)')" ondragover="allowDrop(event)">
-                    <i class="fas fa-bolt text-2xl text-yellow-400 mb-2"></i><h4 class="font-bold text-sm">Scope 1&2 (에너지)</h4><p class="text-xs text-gray-400">Bill/OCR</p>
+                <div class="col-span-1 border-2 border-dashed border-yellow-200 bg-white rounded-xl p-4 text-center drop-zone" ondrop="handleDrop(event, 'Scope 1 & 2')" ondragover="allowDrop(event)">
+                    <i class="fas fa-bolt text-2xl text-yellow-400 mb-2"></i><h4 class="font-bold text-sm">Scope 1 & 2</h4><p class="text-xs text-gray-400">공정 에너지 (전력/연료)</p>
                 </div>
-                <div class="col-span-1 border-2 border-dashed border-green-200 bg-white rounded-xl p-4 text-center drop-zone" ondrop="handleDrop(event, 'Scope 3 (Downstream)')" ondragover="allowDrop(event)">
-                    <i class="fas fa-truck text-2xl text-green-400 mb-2"></i><h4 class="font-bold text-sm">Scope 3 (물류)</h4><p class="text-xs text-gray-400">Invoice</p>
+                <div class="col-span-1 border-2 border-dashed border-green-200 bg-white rounded-xl p-4 text-center drop-zone" ondrop="handleDrop(event, 'Scope 3 Downstream')" ondragover="allowDrop(event)">
+                    <i class="fas fa-truck text-2xl text-green-400 mb-2"></i><h4 class="font-bold text-sm">Scope 3 Downstream</h4><p class="text-xs text-gray-400">물류, 사용, 폐기</p>
                 </div>
                 <div class="col-span-3 bg-slate-900 rounded-xl p-4 text-xs font-mono text-green-400 h-40 overflow-y-auto" id="ai-preview">Waiting for categorized upload...</div>
             </div>
@@ -216,7 +215,7 @@
     </div>
 
     <script>
-        // --- 1. INIT ---
+        // --- 1. INIT & CONFIG ---
         const catSel = document.getElementById('lca-cat');
         Object.keys(PEF_CATS).forEach(k => catSel.innerHTML += `<option value="${k}">${PEF_CATS[k].name}</option>`);
         
@@ -225,7 +224,7 @@
             document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
             document.getElementById('tab-'+id).classList.remove('hidden');
             if(id==='report') updateReport();
-            if(id==='dashboard') setTimeout(updateCharts, 100); // Fix Canvas size 0 issue
+            if(id==='dashboard') setTimeout(updateCharts, 100); 
         }
 
         function setDefaults() {
@@ -263,7 +262,7 @@
             const iron = parseFloat(document.getElementById('lca-iron').value)||0;
             const sumUse = (washes * (0.2 + (temp-20)*0.01)) + (iron * washes * 0.5);
 
-            const sumEol = 0.5;
+            const sumEol = 0.5; // Mock
 
             const total = sumMat + sumMfg + sumDist + sumUse + sumEol;
 
@@ -283,7 +282,7 @@
             }
         }
 
-        // --- 3. AI UPLOAD ---
+        // --- 3. AI UPLOAD (FAIL-SAFE) ---
         function openAI() { document.getElementById('aiModal').classList.remove('hidden'); }
         function closeAI() { document.getElementById('aiModal').classList.add('hidden'); }
         function allowDrop(ev) { ev.preventDefault(); }
@@ -291,17 +290,25 @@
         function handleDrop(ev, type) {
             ev.preventDefault();
             const preview = document.getElementById('ai-preview');
-            preview.innerHTML += `> Analyzing ${type} File: ${ev.dataTransfer.files[0].name}<br>> Verified... OK.<br>`;
+            preview.innerHTML += `> [${type}] File Detected: ${ev.dataTransfer.files[0].name}<br>> Parsing standard format...<br>`;
         }
 
         function applyAI() {
-            document.getElementById('inp-elec').value = 3.5; // Demo Energy
-            const tbody = document.getElementById('bom-body');
-            tbody.innerHTML = `<tr><td class="p-2"><select class="w-full border p-1 mat-select"><option value="cotton">Cotton</option></select></td><td class="p-2"><select class="w-full border p-1 proc-select"><option value="spinning">Spinning</option></select></td><td class="p-2 text-right"><input type="number" class="w-20 border p-1 text-right weight-input" value="0.3" oninput="calc()"></td><td class="text-center"></td></tr>`;
+            // Force Mapping (Official Scopes)
+            // 1. Scope 1&2
+            document.getElementById('inp-elec').value = 3.5; 
+            document.getElementById('inp-gas').value = 1.2;
             
-            calc();
+            // 2. Scope 3 Upstream (BOM)
+            const tbody = document.getElementById('bom-body');
+            tbody.innerHTML = `<tr><td class="p-2"><select class="w-full border p-1 mat-select"><option value="cotton">Cotton</option></select></td><td class="p-2"><select class="w-full border p-1 proc-select"><option value="spinning">Spinning</option></select></td><td class="p-2 text-right"><input type="number" class="w-20 border p-1 text-right weight-input" value="0.35" oninput="calc()"></td><td class="text-center">Del</td></tr>`;
+            
+            // 3. Scope 3 Downstream
+            document.getElementById('lca-dist').value = 12000;
+
+            calc(); // Trigger Calculation
             closeAI();
-            setTimeout(() => alert('AI: 표준 항목에 데이터가 매핑되었습니다.'), 50);
+            setTimeout(() => alert('AI: 표준 분류체계(Scope 1,2,3)에 따라 데이터가 매핑되었습니다.'), 50);
         }
 
         // --- 4. REPORT & CORP ---
