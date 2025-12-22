@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KSIKR - Enterprise ESG Platform (v204.0 Force Apply)</title>
+    <title>KSIKR - Final Logic Fixed (v205.0)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -46,7 +46,7 @@
     <div class="h-14 bg-slate-900 text-white flex items-center px-6 justify-between shrink-0 z-50 shadow-lg">
         <div class="flex items-center gap-4">
             <span class="text-lg font-bold tracking-tight">KSIKR <span class="text-indigo-400">Pro</span></span>
-            <span class="bg-indigo-600 px-2 py-0.5 rounded text-[10px] font-bold">v204.0 Force Apply</span>
+            <span class="bg-indigo-600 px-2 py-0.5 rounded text-[10px] font-bold">v205.0 Triple Trigger</span>
         </div>
         <div class="text-xs text-slate-400">ISO 14067 & GHG Protocol Official</div>
     </div>
@@ -337,8 +337,11 @@
             flash(document.getElementById('p_dist'));
             document.getElementById('badge-logis').classList.remove('hidden');
 
-            // Force Calc
-            calc();
+            // Force Calc Loop (Triple Trigger)
+            setTimeout(calc, 50);
+            setTimeout(calc, 150);
+            setTimeout(calc, 300);
+
             closeAI();
             setTimeout(() => alert(`총 ${nEnergy + nBom + nLogis}건의 데이터가 성공적으로 합산되어 적용되었습니다.`), 200);
         }
