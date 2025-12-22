@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KSIKR - Enterprise ESG/LCA Platform (v102.0 Final Integration)</title>
+    <title>KSIKR - Enterprise ESG/LCA Platform (v103.0 Dashboard Restored)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -27,7 +27,7 @@
         /* AI Modal Styles */
         .modal-overlay { background-color: rgba(15, 23, 42, 0.7); backdrop-filter: blur(4px); transition: all 0.3s; }
         .drop-zone { border: 2px dashed #cbd5e1; transition: all 0.2s; background-color: white; cursor: pointer; }
-        .drop-zone.drag-over { border-color: #6366f1; background-color: #e0e7ff; transform: scale(1.02); }
+        .drop-zone:hover, .drop-zone.drag-over { border-color: #6366f1; background-color: #e0e7ff; transform: scale(1.02); }
     </style>
 </head>
 <body class="text-slate-800 h-screen flex flex-col overflow-hidden">
@@ -36,12 +36,16 @@
         window.appState = {
             totalGWP: 0.00,
             breakdown: [0, 0, 0, 0, 0, 0], 
-            // [DATA] History for Line Chart
+            // [DATA] History Data (Mixed Date for Logic Test)
             history: [
                 { date: '2025-10-15', product: 'Basic Tee v1', gwp: 12.5 },
                 { date: '2025-11-02', product: 'Summer Line', gwp: 15.2 },
                 { date: '2025-11-20', product: 'Basic T-Shirt', gwp: 3.85 },
                 { date: '2025-12-05', product: 'Denim Pants', gwp: 12.4 }
+            ],
+            suppliers: [
+                { name: 'Dongjin Textile', item: 'Cotton Fabric', ef: 1.8 },
+                { name: 'Taekwang Ind', item: 'Polyester', ef: 4.6 }
             ]
         };
 
@@ -53,7 +57,7 @@
     </script>
 
     <div class="h-10 bg-slate-900 text-white flex items-center px-6 text-xs font-medium justify-between z-50 shadow-md shrink-0">
-        <div class="flex items-center gap-4"><span class="bg-indigo-600 px-2 py-0.5 rounded text-[10px] font-bold tracking-wider">KSIKR OFFICIAL</span><span class="text-slate-400">v102.0 Final</span></div>
+        <div class="flex items-center gap-4"><span class="bg-indigo-600 px-2 py-0.5 rounded text-[10px] font-bold tracking-wider">KSIKR OFFICIAL</span><span class="text-slate-400">v103.0 Dashboard Restoration</span></div>
         <div class="flex items-center gap-4"><span class="flex items-center gap-2"><i class="fas fa-database text-slate-500"></i> DB: Ecoinvent 3.9</span></div>
     </div>
 
@@ -84,7 +88,7 @@
                     <div class="kpi-card"><div class="flex justify-between mb-2"><span class="text-xs font-bold text-slate-500">COST SAVING</span><i class="fas fa-won-sign text-blue-200"></i></div><h3 class="text-2xl font-bold text-slate-800">₩ 12.5M</h3></div>
                 </div>
                 <div class="grid grid-cols-3 gap-6">
-                    <div class="col-span-2 bg-white p-6 rounded-2xl border shadow-sm"><h4 class="font-bold text-slate-800 mb-4">배출량 추이 (History)</h4><div class="h-64"><canvas id="lineChart"></canvas></div></div>
+                    <div class="col-span-2 bg-white p-6 rounded-2xl border shadow-sm"><h4 class="font-bold text-slate-800 mb-4">배출량 추이 (History Trend)</h4><div class="h-64"><canvas id="lineChart"></canvas></div></div>
                     <div class="col-span-1 bg-white p-6 rounded-2xl border shadow-sm"><h4 class="font-bold text-slate-800 mb-4">평가 핫스팟 (Hotspot)</h4><div class="h-64"><canvas id="donutChart"></canvas></div></div>
                 </div>
             </section>
@@ -270,9 +274,8 @@
             document.getElementById('res-eng').innerText = eng.toFixed(2);
             
             window.appState.totalGWP = total;
-            window.appState.breakdown = [sumMat, eng, 0.2, 5.0, 0.1]; // Mock breakdown for responsiveness
+            window.appState.breakdown = [sumMat, eng, 0.2, 5.0, 0.1];
             
-            // Real-time chart update if visible
             if(window.donutChart) {
                 window.donutChart.data.datasets[0].data = window.appState.breakdown;
                 window.donutChart.update();
@@ -284,7 +287,6 @@
             const today = new Date().toISOString().split('T')[0];
             window.appState.history.unshift({ date: today, product: 'New Product', gwp: val });
             
-            // Calc avg
             const total = window.appState.history.reduce((acc, curr) => acc + parseFloat(curr.gwp), 0);
             const avg = (total / window.appState.history.length).toFixed(2);
             document.getElementById('dash-avg-gwp').innerText = avg;
@@ -309,21 +311,29 @@
             }, 500);
         }
 
-        // Charts Init
+        // [RESTORED] Charts Initialization
         const lineCtx = document.getElementById('lineChart');
         const donutCtx = document.getElementById('donutChart');
         
-        window.lineChart = new Chart(lineCtx, { type: 'line', data: { labels: [], datasets: [{ label: 'GWP Trend', data: [], borderColor: '#4f46e5', tension: 0.4 }] } });
-        window.donutChart = new Chart(donutCtx, { type: 'doughnut', data: { labels: ['Mat','Eng','Log','Use','EOL'], datasets: [{ data: [1,1,1,1,1], backgroundColor: ['#4f46e5','#f59e0b','#10b981','#3b82f6','#64748b'] }] }, options: { cutout:'70%' } });
+        window.lineChart = new Chart(lineCtx, { 
+            type: 'line', 
+            data: { labels: [], datasets: [{ label: 'GWP Trend', data: [], borderColor: '#4f46e5', tension: 0.4, fill: true, backgroundColor: 'rgba(79, 70, 229, 0.05)' }] },
+            options: { maintainAspectRatio: false }
+        });
+        
+        window.donutChart = new Chart(donutCtx, { 
+            type: 'doughnut', 
+            data: { labels: ['Mat','Eng','Log','Use','EOL'], datasets: [{ data: [1,1,1,1,1], backgroundColor: ['#4f46e5','#f59e0b','#10b981','#3b82f6','#64748b'] }] }, 
+            options: { cutout:'70%', maintainAspectRatio: false } 
+        });
 
         function updateCharts() {
-            // Update Line Chart (History)
+            // [FIXED] Sort by date logic restored
             const sortedHistory = [...window.appState.history].sort((a, b) => new Date(a.date) - new Date(b.date));
             window.lineChart.data.labels = sortedHistory.map(h => h.date);
             window.lineChart.data.datasets[0].data = sortedHistory.map(h => h.gwp);
             window.lineChart.update();
 
-            // Update Donut Chart (Current Breakdown)
             window.donutChart.data.datasets[0].data = window.appState.breakdown;
             window.donutChart.update();
         }
@@ -331,8 +341,7 @@
         // Init Calls
         addBomRow();
         setDefaults();
-        // Initial chart render
-        updateCharts(); 
+        updateCharts(); // Initial Render
     </script>
 </body>
 </html>
