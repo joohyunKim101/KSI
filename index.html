@@ -3,39 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KSIKR - Enterprise ESG Platform (v202.0 Visual Feedback)</title>
+    <title>KSIKR - Enterprise ESG Platform (v203.0 Multi-Upload)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700&display=swap');
         body { font-family: 'Pretendard', sans-serif; background-color: #f8fafc; }
-        
-        /* Core UI */
         .nav-item { transition: all 0.2s; border-radius: 12px; font-weight: 600; color: #64748b; font-size: 14px; cursor: pointer; }
         .nav-item:hover { background-color: #f1f5f9; color: #334155; }
         .nav-active { background-color: #4f46e5; color: white; box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2); }
         .kpi-card { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px; }
-        .input-field { width: 100%; border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px 12px; font-size: 13px; text-align: right; transition: all 0.3s; }
-        .input-field:focus { border-color: #6366f1; outline: none; ring: 2px solid #e0e7ff; }
-        
-        /* Visual Feedback Animation */
-        .flash-highlight { animation: highlight-pulse 1.5s ease-out; border: 2px solid #f59e0b !important; background-color: #fffbeb !important; }
-        @keyframes highlight-pulse {
-            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7); }
-            50% { transform: scale(1.02); box-shadow: 0 0 0 10px rgba(245, 158, 11, 0); }
-            100% { transform: scale(1); }
-        }
-
-        /* AI Modal */
-        .modal-overlay { background-color: rgba(15, 23, 42, 0.85); backdrop-filter: blur(8px); z-index: 9999; }
-        .drop-zone { border: 2px dashed #cbd5e1; transition: all 0.2s; background-color: white; cursor: pointer; position: relative; overflow: hidden; }
-        .drop-zone.drag-over { border-color: #4f46e5; background-color: #e0e7ff; transform: scale(1.02); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
-        .drop-zone.file-loaded { border-color: #10b981; background-color: #ecfdf5; }
-        .drop-zone i { transition: all 0.3s; }
-        .drop-zone.drag-over i { transform: scale(1.2); color: #4f46e5; }
-        
+        .input-field { width: 100%; border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px 12px; font-size: 13px; text-align: right; transition: all 0.2s; }
+        .input-field:focus { border-color: #6366f1; outline: none; ring: 2px solid #e0e7ff; background-color: #fff; }
+        .highlight { animation: flash 1s; }
+        @keyframes flash { 0% { background-color: #e0e7ff; } 100% { background-color: white; } }
         .report-paper { width: 210mm; min-height: 297mm; padding: 20mm; margin: 0 auto; background: white; border: 1px solid #e2e8f0; }
+        .modal-overlay { background-color: rgba(15, 23, 42, 0.85); backdrop-filter: blur(4px); z-index: 9999; }
+        .drop-zone { border: 2px dashed #cbd5e1; transition: all 0.2s; background-color: white; cursor: pointer; position: relative; }
+        .drop-zone:hover, .drop-zone.drag-over { border-color: #6366f1; background-color: #eff6ff; transform: scale(1.02); }
+        .file-count-badge { position: absolute; top: -10px; right: -10px; background: #ef4444; color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
     </style>
 </head>
 <body class="text-slate-800 h-screen flex flex-col overflow-hidden">
@@ -47,7 +34,8 @@
                 { date: '2025-11-20', gwp: 3.85 }, { date: '2025-12-05', gwp: 12.4 }
             ],
             current: { mat:0, mfg:0, dist:0, use:0, eol:0, total:0 },
-            uploaded: { bom: false, energy: false, logis: false } // Track uploads
+            // File Accumulator
+            files: { bom: [], energy: [], logis: [] }
         };
         const DEFAULTS = { 
             'tshirt': { life: 52, temp: 40, iron: 0.5 }, 
@@ -59,9 +47,9 @@
     <div class="h-14 bg-slate-900 text-white flex items-center px-6 justify-between shrink-0 z-50 shadow-lg">
         <div class="flex items-center gap-4">
             <span class="text-lg font-bold tracking-tight">KSIKR <span class="text-indigo-400">Pro</span></span>
-            <span class="bg-indigo-600 px-2 py-0.5 rounded text-[10px] font-bold">v202.0 Visual Feedback</span>
+            <span class="bg-indigo-600 px-2 py-0.5 rounded text-[10px] font-bold">v203.0 Multi-Upload</span>
         </div>
-        <div class="text-xs text-slate-400">GHG Protocol Scope 1, 2, 3</div>
+        <div class="text-xs text-slate-400">ISO 14067 & GHG Protocol Official</div>
     </div>
 
     <div class="flex flex-1 overflow-hidden h-full">
@@ -79,7 +67,7 @@
             <section id="tab-dashboard" class="space-y-6">
                 <header class="flex justify-between items-end">
                     <div><h2 class="text-2xl font-bold text-slate-900">통합 관제 대시보드</h2></div>
-                    <button onclick="switchTab('lca')" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-indigo-700 transition">신규 평가</button>
+                    <button onclick="switchTab('lca')" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-indigo-700">신규 평가</button>
                 </header>
                 <div class="grid grid-cols-4 gap-4">
                     <div class="kpi-card"><div class="text-xs text-slate-500 font-bold mb-1">TOTAL GWP</div><div class="text-2xl font-bold"><span id="dash-total">--</span> <span class="text-sm text-slate-400">kg</span></div></div>
@@ -97,8 +85,8 @@
                 <div class="col-span-8 space-y-6 pb-20">
                     <div class="flex justify-between items-center">
                         <h2 class="text-2xl font-bold text-slate-900">정밀 LCA (Scope 1,2,3)</h2>
-                        <button onclick="openAI()" class="bg-gradient-to-r from-indigo-600 to-violet-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 shadow-lg hover:shadow-indigo-500/30 transition-all transform hover:-translate-y-0.5">
-                            <i class="fas fa-robot animate-pulse"></i> AI 스마트 데이터 업로드
+                        <button onclick="openAI()" class="bg-gradient-to-r from-indigo-600 to-violet-600 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 shadow hover:shadow-lg transition-transform hover:-translate-y-0.5">
+                            <i class="fas fa-cloud-upload-alt"></i> AI 데이터 일괄 업로드
                         </button>
                     </div>
 
@@ -110,22 +98,19 @@
                         </div>
                     </div>
 
-                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm" id="box-bom">
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="font-bold text-slate-800 border-l-4 border-indigo-500 pl-3">2. 자재 명세 (Scope 3 Upstream)</h3>
-                            <span class="text-[10px] bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-bold hidden" id="badge-bom">AI Applied</span>
+                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                        <div class="flex justify-between">
+                            <h3 class="font-bold text-slate-800 mb-4 border-l-4 border-indigo-500 pl-3">2. 자재 명세 (Scope 3 Upstream)</h3>
+                            <span id="badge-bom" class="hidden text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded font-bold">AI Applied</span>
                         </div>
-                        <table class="w-full text-sm text-left mb-2">
-                            <thead><tr class="text-xs text-slate-400 border-b"><th class="py-2">자재명</th><th>공정</th><th class="text-right">중량(kg)</th></tr></thead>
-                            <tbody id="bom-list"></tbody>
-                        </table>
+                        <table class="w-full text-sm text-left mb-2"><tbody id="bom-list"></tbody></table>
                         <button onclick="addBom()" class="text-xs bg-slate-100 px-3 py-1 rounded font-bold hover:bg-slate-200">+ 추가</button>
                     </div>
 
-                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm" id="box-energy">
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="font-bold text-slate-800 border-l-4 border-indigo-500 pl-3">3. 제조 에너지 (Scope 1 & 2)</h3>
-                            <span class="text-[10px] bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full font-bold hidden" id="badge-energy">AI Applied</span>
+                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                        <div class="flex justify-between">
+                            <h3 class="font-bold text-slate-800 mb-4 border-l-4 border-indigo-500 pl-3">3. 제조 에너지 (Scope 1 & 2)</h3>
+                            <span id="badge-energy" class="hidden text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded font-bold">AI Applied</span>
                         </div>
                         <div class="grid grid-cols-3 gap-4">
                             <div><label class="text-xs font-bold text-slate-500">전력(kWh)</label><input type="number" id="p_elec" class="input-field" value="0" oninput="calc()"></div>
@@ -134,10 +119,10 @@
                         </div>
                     </div>
 
-                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm" id="box-logis">
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="font-bold text-slate-800 border-l-4 border-indigo-500 pl-3">4. 물류 (Scope 3 Downstream)</h3>
-                            <span class="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold hidden" id="badge-logis">AI Applied</span>
+                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                        <div class="flex justify-between">
+                            <h3 class="font-bold text-slate-800 mb-4 border-l-4 border-indigo-500 pl-3">4. 물류 (Scope 3 Downstream)</h3>
+                            <span id="badge-logis" class="hidden text-xs bg-green-100 text-green-700 px-2 py-1 rounded font-bold">AI Applied</span>
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div><label class="text-xs font-bold text-slate-500">포장중량(kg)</label><input type="number" id="p_pack" class="input-field" value="0.05" oninput="calc()"></div>
@@ -195,30 +180,39 @@
 
     <div id="ai-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-overlay">
         <div class="bg-white w-full max-w-4xl rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-fade-in-up">
-            <div class="bg-slate-900 text-white px-6 py-4 flex justify-between"><h3 class="font-bold flex items-center gap-2"><i class="fas fa-robot"></i> AI Smart Data Collector</h3><button onclick="closeAI()"><i class="fas fa-times"></i></button></div>
+            <div class="bg-slate-900 text-white px-6 py-4 flex justify-between"><h3 class="font-bold flex items-center gap-2"><i class="fas fa-robot"></i> AI Smart Data Collector (Multi-File)</h3><button onclick="closeAI()"><i class="fas fa-times"></i></button></div>
             <div class="flex-1 p-8 grid grid-cols-3 gap-6 bg-slate-50">
-                <div id="dz-bom" class="drop-zone p-6 text-center rounded-xl bg-white border-2 border-dashed border-indigo-300">
-                    <i class="fas fa-cube text-3xl text-indigo-400 mb-3"></i><h4 class="font-bold text-sm text-indigo-700">Scope 3 (자재)</h4><p class="text-xs text-gray-400">Drop BOM Excel/PDF</p>
+                <input type="file" id="file-bom" class="hidden" multiple onchange="handleFiles(this.files, 'bom')">
+                <div class="drop-zone p-6 text-center rounded-xl bg-white border-2 border-dashed border-indigo-300" onclick="document.getElementById('file-bom').click()" ondrop="handleDrop(event, 'bom')" ondragover="allowDrop(event)">
+                    <div class="file-count-badge hidden" id="cnt-bom">0</div>
+                    <i class="fas fa-cube text-3xl text-indigo-400 mb-3"></i><h4 class="font-bold text-sm text-indigo-700">Scope 3 (자재)</h4><p class="text-xs text-gray-400">Drag Multiple BOMs</p>
                 </div>
-                <div id="dz-energy" class="drop-zone p-6 text-center rounded-xl bg-white border-2 border-dashed border-yellow-400">
-                    <i class="fas fa-bolt text-3xl text-yellow-500 mb-3"></i><h4 class="font-bold text-sm text-yellow-700">Scope 1&2 (에너지)</h4><p class="text-xs text-gray-400">Drop Bill Image/PDF</p>
+
+                <input type="file" id="file-energy" class="hidden" multiple onchange="handleFiles(this.files, 'energy')">
+                <div class="drop-zone p-6 text-center rounded-xl bg-white border-2 border-dashed border-yellow-400" onclick="document.getElementById('file-energy').click()" ondrop="handleDrop(event, 'energy')" ondragover="allowDrop(event)">
+                    <div class="file-count-badge hidden" id="cnt-energy">0</div>
+                    <i class="fas fa-bolt text-3xl text-yellow-500 mb-3"></i><h4 class="font-bold text-sm text-yellow-700">Scope 1&2 (에너지)</h4><p class="text-xs text-gray-400">Drag 12 Monthly Bills</p>
                 </div>
-                <div id="dz-logis" class="drop-zone p-6 text-center rounded-xl bg-white border-2 border-dashed border-green-400">
-                    <i class="fas fa-truck text-3xl text-green-500 mb-3"></i><h4 class="font-bold text-sm text-green-700">Scope 3 (물류)</h4><p class="text-xs text-gray-400">Drop Invoice PDF</p>
+
+                <input type="file" id="file-logis" class="hidden" multiple onchange="handleFiles(this.files, 'logis')">
+                <div class="drop-zone p-6 text-center rounded-xl bg-white border-2 border-dashed border-green-400" onclick="document.getElementById('file-logis').click()" ondrop="handleDrop(event, 'logis')" ondragover="allowDrop(event)">
+                    <div class="file-count-badge hidden" id="cnt-logis">0</div>
+                    <i class="fas fa-truck text-3xl text-green-500 mb-3"></i><h4 class="font-bold text-sm text-green-700">Scope 3 (물류)</h4><p class="text-xs text-gray-400">Drag Invoices</p>
                 </div>
-                <div id="ai-log" class="col-span-3 bg-slate-900 text-green-400 text-xs font-mono p-4 rounded-xl h-32 overflow-y-auto border border-slate-700 shadow-inner">
-                    > System Ready. Waiting for input...
+
+                <div id="ai-log" class="col-span-3 bg-slate-900 text-green-400 text-xs font-mono p-4 rounded-xl h-36 overflow-y-auto border border-slate-700 shadow-inner">
+                    > System Ready. Supports Multi-File Drag & Drop...
                 </div>
             </div>
             <div class="p-6 border-t bg-white flex justify-end gap-3">
                 <button onclick="closeAI()" class="px-5 py-2.5 text-slate-500 font-bold hover:bg-slate-100 rounded-lg">취소</button>
-                <button onclick="applyAIData()" class="px-6 py-2.5 bg-indigo-600 text-white font-bold rounded-lg shadow-lg hover:bg-indigo-700 active:scale-95 transition-transform">데이터 매핑 및 적용</button>
+                <button onclick="applyAIData()" class="px-6 py-2.5 bg-indigo-600 text-white font-bold rounded-lg shadow-lg hover:bg-indigo-700 active:scale-95 transition-transform">데이터 일괄 합산 및 적용</button>
             </div>
         </div>
     </div>
 
     <script>
-        // --- CORE LOGIC ---
+        // --- 1. CORE LOGIC ---
         function switchTab(id) {
             document.querySelectorAll('section').forEach(el => el.classList.add('hidden'));
             document.getElementById('tab-' + id).classList.remove('hidden');
@@ -265,7 +259,6 @@
             const eol = 0.5;
             const total = mat + mfg + logis + use + eol;
 
-            // DOM Update
             document.getElementById('res-mat').innerText = mat.toFixed(2);
             document.getElementById('res-mfg').innerText = mfg.toFixed(2);
             document.getElementById('res-dist').innerText = logis.toFixed(2);
@@ -276,7 +269,6 @@
             
             ['mat','mfg','dist','use','eol'].forEach((k, i) => document.getElementById(`txt_${k}`).innerText = [mat, mfg, logis, use, eol][i].toFixed(2));
 
-            // State Update
             window.appState.current = { mat, mfg, dist: logis, use, eol, total };
             
             if(window.donutChart) {
@@ -285,77 +277,75 @@
             }
         }
 
-        // --- AI UPLOAD (VISUAL & EVENT) ---
+        // --- 2. MULTI-FILE AI UPLOAD ---
         function openAI() { document.getElementById('ai-modal').classList.remove('hidden'); }
         function closeAI() { document.getElementById('ai-modal').classList.add('hidden'); }
+        function allowDrop(ev) { ev.preventDefault(); ev.currentTarget.classList.add('drag-over'); }
         
-        // Setup Drag Events
-        const dropZones = ['dz-bom', 'dz-energy', 'dz-logis'];
-        dropZones.forEach(id => {
-            const el = document.getElementById(id);
-            el.addEventListener('dragover', (e) => { e.preventDefault(); el.classList.add('drag-over'); });
-            el.addEventListener('dragleave', (e) => { e.preventDefault(); el.classList.remove('drag-over'); });
-            el.addEventListener('drop', (e) => {
-                e.preventDefault();
-                el.classList.remove('drag-over');
-                el.classList.add('file-loaded');
-                el.querySelector('p').innerText = "File Ready: " + e.dataTransfer.files[0].name;
-                el.querySelector('i').classList.replace('fa-cloud-upload-alt', 'fa-check-circle');
-                
-                const type = id.split('-')[1];
-                window.appState.uploaded[type] = true;
-                
-                const log = document.getElementById('ai-log');
-                log.innerHTML += `<br>> Analyzed [${type.toUpperCase()}] ... Success.`;
-                log.scrollTop = log.scrollHeight;
-            });
-        });
+        function handleDrop(ev, type) {
+            ev.preventDefault();
+            ev.currentTarget.classList.remove('drag-over');
+            handleFiles(ev.dataTransfer.files, type);
+        }
+
+        function handleFiles(files, type) {
+            if(!files.length) return;
+            
+            // Accumulate files
+            const currentList = window.appState.files[type];
+            for (let i = 0; i < files.length; i++) {
+                currentList.push(files[i]);
+                document.getElementById('ai-log').innerHTML += `<br>> [${type.toUpperCase()}] Added: ${files[i].name}`;
+            }
+            
+            // Update UI Badge
+            const badge = document.getElementById(`cnt-${type}`);
+            badge.innerText = currentList.length;
+            badge.classList.remove('hidden');
+            
+            document.getElementById('ai-log').scrollTop = document.getElementById('ai-log').scrollHeight;
+        }
 
         function applyAIData() {
-            // 1. Close Modal
-            closeAI();
-
-            // 2. Logic: Only apply if "uploaded" (Mock simulation)
-            // Force injection for demo
+            // LOGIC: Multiply base value by number of files (Simulation of summation)
             
-            // Energy
-            if(window.appState.uploaded.energy || true) { // Always true for demo
+            // Energy (1.5 kWh per file)
+            const nEnergy = window.appState.files.energy.length || 0;
+            if(nEnergy > 0) {
                 const elElec = document.getElementById('p_elec');
-                const elGas = document.getElementById('p_gas');
-                elElec.value = 5.5; 
-                elGas.value = 2.1;
-                // Visual Flash
-                flash(elElec); flash(elGas);
+                elElec.value = (nEnergy * 1.5).toFixed(1); // Summation Simulation
+                flash(elElec);
                 document.getElementById('badge-energy').classList.remove('hidden');
             }
 
-            // BOM
-            if(window.appState.uploaded.bom || true) {
-                document.getElementById('bom-list').innerHTML = `<tr><td class="p-2"><select class="input-field"><option>Cotton</option></select></td><td class="p-2"><select class="input-field"><option>Spinning</option></select></td><td class="p-2"><input type="number" class="input-field p-weight" value="0.35" oninput="calc()"></td></tr>`;
-                document.getElementById('badge-bom').classList.remove('hidden');
-                // Flash table container
+            // BOM (Add rows per file)
+            const nBom = window.appState.files.bom.length || 0;
+            if(nBom > 0) {
+                const list = document.getElementById('bom-list');
+                list.innerHTML = ''; // Reset
+                for(let i=0; i<nBom; i++) {
+                    list.innerHTML += `<tr><td class="p-2"><select class="input-field"><option>Cotton (File ${i+1})</option></select></td><td class="p-2"><select class="input-field"><option>Spinning</option></select></td><td class="p-2"><input type="number" class="input-field p-weight" value="0.3" oninput="calc()"></td></tr>`;
+                }
                 flash(document.getElementById('box-bom'));
+                document.getElementById('badge-bom').classList.remove('hidden');
             }
 
             // Logistics
-            if(window.appState.uploaded.logis || true) {
-                const elPack = document.getElementById('p_pack');
-                elPack.value = 0.15;
-                flash(elPack);
+            const nLogis = window.appState.files.logis.length || 0;
+            if(nLogis > 0) {
+                document.getElementById('p_dist').value = nLogis * 1000; // 1000km per file
+                flash(document.getElementById('p_dist'));
                 document.getElementById('badge-logis').classList.remove('hidden');
             }
 
-            // 3. Calc
             calc();
-            setTimeout(() => alert('AI 데이터가 해당 항목에 매핑되었습니다.\n(노란색 깜빡임 확인)'), 300);
+            closeAI();
+            setTimeout(() => alert(`총 ${nEnergy + nBom + nLogis}개의 파일 데이터가 합산 및 적용되었습니다.`), 200);
         }
 
-        function flash(element) {
-            element.classList.add('flash-highlight');
-            setTimeout(() => element.classList.remove('flash-highlight'), 1500);
-        }
+        function flash(el) { el.classList.add('flash-highlight'); setTimeout(() => el.classList.remove('flash-highlight'), 1500); }
 
-        // --- REPORT & CORP ---
+        // --- 3. SAVE & REPORT ---
         function saveResult() {
             const val = window.appState.current.total;
             const today = new Date().toISOString().split('T')[0];
@@ -387,7 +377,7 @@
             }, 300);
         }
 
-        // --- CHARTS ---
+        // --- 4. CHARTS ---
         const ctxLine = document.getElementById('lineChart');
         const ctxDonut = document.getElementById('donutChart');
 
