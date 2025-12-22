@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KSIKR - Enterprise ESG Platform (v200.0 Perfect Logic)</title>
+    <title>KSIKR - Enterprise ESG Platform (v201.0 Fixed)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -26,7 +26,7 @@
     <div class="h-14 bg-slate-900 text-white flex items-center px-6 justify-between shrink-0 z-50 shadow-lg">
         <div class="flex items-center gap-4">
             <span class="text-lg font-bold tracking-tight">KSIKR <span class="text-indigo-400">Pro</span></span>
-            <span class="bg-indigo-600 px-2 py-0.5 rounded text-[10px] font-bold">v200.0 Official</span>
+            <span class="bg-indigo-600 px-2 py-0.5 rounded text-[10px] font-bold">v201.0 Fixed</span>
         </div>
         <div class="text-xs text-slate-400">ISO 14067 & GHG Protocol Compliant</div>
     </div>
@@ -324,9 +324,12 @@
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('nav-active'));
             document.getElementById('btn-' + id).classList.add('nav-active');
 
+            // [FIXED] Force Chart Update on Tab Switch
             if (id === 'dashboard') {
-                calculateAll(); // Force refresh charts
-                window.lineChart.update();
+                setTimeout(() => {
+                    calculateAll();
+                    updateCharts();
+                }, 100);
             }
         }
 
@@ -344,11 +347,6 @@
             const today = new Date().toISOString().split('T')[0];
             STATE.history.push({ date: today, gwp: STATE.current.total });
             
-            // Update Line Chart
-            window.lineChart.data.labels.push(today);
-            window.lineChart.data.datasets[0].data.push(STATE.current.total);
-            window.lineChart.update();
-
             // Calc Avg
             const sum = STATE.history.reduce((a, b) => a + b.gwp, 0);
             document.getElementById('dash-avg-gwp').innerText = (sum / STATE.history.length).toFixed(2);
@@ -413,7 +411,7 @@
         // --- 5. CHARTS ---
         function renderCharts() {
             // Line Chart
-            new Chart(document.getElementById('lineChart'), {
+            window.lineChart = new Chart(document.getElementById('lineChart'), {
                 type: 'line',
                 data: {
                     labels: STATE.history.map(h => h.date),
@@ -441,6 +439,18 @@
                 },
                 options: { responsive: true, maintainAspectRatio: false, cutout: '70%' }
             });
+        }
+
+        function updateCharts() {
+            if(window.lineChart) {
+                window.lineChart.data.labels = STATE.history.map(h => h.date);
+                window.lineChart.data.datasets[0].data = STATE.history.map(h => h.gwp);
+                window.lineChart.update();
+            }
+            if(window.donutChart) {
+                window.donutChart.data.datasets[0].data = [STATE.current.mat, STATE.current.mfg, STATE.current.dist, STATE.current.use, STATE.current.eol];
+                window.donutChart.update();
+            }
         }
 
         // START
