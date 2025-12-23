@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KSIKR - CEO & DPP Integrated (v1800)</title>
+    <title>KSIKR - Enterprise LCA (v1900)</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
@@ -12,376 +12,480 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; color: #0f172a; }
+        @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Pretendard', sans-serif; background-color: #f3f4f6; color: #1f2937; }
 
         /* Navigation */
-        .nav-item { padding: 10px 14px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; display: flex; align-items: center; transition: all 0.2s; color: #64748b; margin-bottom: 2px; }
-        .nav-item:hover { background: #f8fafc; color: #0f172a; }
-        .nav-item.active { background: #e0e7ff; color: #4338ca; font-weight: 700; border-right: 3px solid #4338ca; }
+        .nav-item { padding: 12px 16px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; display: flex; align-items: center; transition: all 0.2s; color: #6b7280; margin-bottom: 4px; }
+        .nav-item:hover { background: #e5e7eb; color: #111827; }
+        .nav-item.active { background: #e0e7ff; color: #4338ca; font-weight: 700; border-right: 4px solid #4338ca; }
 
-        /* Cards & UI */
-        .card { background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 20px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
-        .select-card { border: 2px solid #e2e8f0; border-radius: 10px; padding: 12px; cursor: pointer; transition: 0.2s; position: relative; }
-        .select-card.selected { border-color: #4f46e5; background-color: #eef2ff; }
-        .grade-badge { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; color: white; }
+        /* Cards */
+        .card { background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); transition: box-shadow 0.2s; }
+        .card:hover { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
         
-        /* Map & Containers */
-        #map-container { height: 100%; width: 100%; min-height: 400px; border-radius: 8px; z-index: 1; }
+        /* Studio UI */
+        .input-group { margin-bottom: 16px; }
+        .input-label { display: block; font-size: 12px; font-weight: 700; color: #4b5563; margin-bottom: 6px; text-transform: uppercase; }
+        .select-box { width: 100%; border: 1px solid #d1d5db; border-radius: 8px; padding: 10px; font-size: 14px; background-color: #f9fafb; transition: 0.2s; }
+        .select-box:focus { outline: none; border-color: #4f46e5; background-color: white; ring: 2px solid #e0e7ff; }
+
+        /* DPP Phone Mockup */
+        .phone-mockup { width: 320px; border: 12px solid #333; border-radius: 30px; overflow: hidden; background: white; margin: 0 auto; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); }
+        .dpp-header { background: #4f46e5; color: white; padding: 20px; text-align: center; }
+
+        /* Map */
+        #map-container { height: 100%; width: 100%; min-height: 350px; border-radius: 8px; z-index: 1; }
         
-        /* DPP Card Style */
-        .dpp-card { background: #1e293b; color: white; border-radius: 16px; padding: 24px; max-width: 320px; margin: 0 auto; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
+        /* Status Badges */
+        .badge { padding: 4px 8px; border-radius: 9999px; font-size: 11px; font-weight: 700; }
+        .badge-green { background: #dcfce7; color: #166534; }
+        .badge-red { background: #fee2e2; color: #991b1b; }
+        .badge-yellow { background: #fef9c3; color: #854d0e; }
     </style>
 </head>
 <body class="h-screen flex flex-col overflow-hidden">
 
-    <header class="h-14 bg-white border-b border-slate-200 flex items-center justify-between px-6 shrink-0 z-50">
+    <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 shrink-0 z-50">
         <div class="flex items-center gap-3">
-            <div class="w-8 h-8 bg-indigo-600 rounded flex items-center justify-center text-white font-bold">K</div>
-            <div><h1 class="font-bold text-sm">KSIKR <span class="text-indigo-600">Enterprise</span></h1><p class="text-[10px] text-slate-400">v1800.0 | CEO & DPP Ready</p></div>
+            <div class="w-9 h-9 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-lg shadow">K</div>
+            <div>
+                <h1 class="font-bold text-base text-slate-900">KSIKR <span class="text-indigo-600">Enterprise</span></h1>
+                <p class="text-[11px] text-slate-500">Global Compliance Ready (v1900.0)</p>
+            </div>
         </div>
-        <div class="flex items-center gap-4 text-xs">
-            <div class="px-3 py-1 bg-green-50 text-green-700 rounded border border-green-200 font-bold"><i class="fas fa-check-circle mr-1"></i> ISO 14067 Compliant</div>
-            <div class="px-3 py-1 bg-slate-100 rounded border border-slate-200 font-bold text-slate-600">User: CEO Kim</div>
+        <div class="flex items-center gap-6 text-sm">
+            <div class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                <span class="text-slate-600 font-medium">System Operational</span>
+            </div>
+            <div class="flex items-center gap-3 pl-6 border-l border-slate-200">
+                <div class="text-right">
+                    <div class="text-xs font-bold text-slate-900">Kim CEO</div>
+                    <div class="text-[10px] text-slate-500">Super Admin</div>
+                </div>
+                <div class="w-9 h-9 rounded-full bg-slate-100 border flex items-center justify-center text-slate-400"><i class="fas fa-user"></i></div>
+            </div>
         </div>
     </header>
 
     <div class="flex flex-1 overflow-hidden">
         
-        <aside class="w-64 bg-slate-50 border-r border-slate-200 flex flex-col p-3 z-40 overflow-y-auto">
+        <aside class="w-64 bg-white border-r border-slate-200 flex flex-col p-4 z-40 overflow-y-auto">
             <nav class="flex-1 space-y-1">
-                <div class="text-[10px] font-bold text-slate-400 uppercase px-2 mb-2 mt-2">Core Analysis</div>
-                <div class="nav-item active" onclick="setTab('studio')" id="nav-studio"><i class="fas fa-magic w-5 text-indigo-500"></i> Smart Studio</div>
-                <div class="nav-item" onclick="setTab('dash')" id="nav-dash"><i class="fas fa-chart-pie w-5"></i> Dashboard</div>
+                <div class="text-[11px] font-bold text-slate-400 uppercase px-3 mb-2 mt-2 tracking-wider">Analytics Center</div>
+                <div class="nav-item active" onclick="setTab('dash')" id="nav-dash"><i class="fas fa-chart-line w-6"></i> Dashboard</div>
+                <div class="nav-item" onclick="setTab('studio')" id="nav-studio"><i class="fas fa-sliders-h w-6"></i> Smart Studio</div>
                 
-                <div class="text-[10px] font-bold text-slate-400 uppercase px-2 mb-2 mt-6">Regulation & Export</div>
-                <div class="nav-item" onclick="setTab('dpp')" id="nav-dpp"><i class="fas fa-qrcode w-5 text-pink-500"></i> Digital Passport (DPP)</div>
-                <div class="nav-item" onclick="setTab('report')" id="nav-report"><i class="fas fa-file-contract w-5"></i> Official Report</div>
+                <div class="text-[11px] font-bold text-slate-400 uppercase px-3 mb-2 mt-6 tracking-wider">Regulation & DPP</div>
+                <div class="nav-item" onclick="setTab('report')" id="nav-report"><i class="fas fa-file-contract w-6"></i> Official Report</div>
+                <div class="nav-item" onclick="setTab('dpp')" id="nav-dpp"><i class="fas fa-passport w-6"></i> Digital Passport</div>
                 
-                <div class="text-[10px] font-bold text-slate-400 uppercase px-2 mb-2 mt-6">Management</div>
-                <div class="nav-item" onclick="setTab('supply')" id="nav-supply"><i class="fas fa-network-wired w-5"></i> Supply Chain</div>
-                <div class="nav-item" onclick="setTab('history')" id="nav-history"><i class="fas fa-history w-5"></i> History</div>
-                <div class="nav-item" onclick="setTab('company')" id="nav-company"><i class="fas fa-building w-5"></i> Company Info</div>
+                <div class="text-[11px] font-bold text-slate-400 uppercase px-3 mb-2 mt-6 tracking-wider">Management</div>
+                <div class="nav-item" onclick="setTab('supply')" id="nav-supply"><i class="fas fa-network-wired w-6"></i> Supply Chain</div>
+                <div class="nav-item" onclick="setTab('history')" id="nav-history"><i class="fas fa-history w-6"></i> Audit Log</div>
+                <div class="nav-item" onclick="setTab('company')" id="nav-company"><i class="fas fa-building w-6"></i> Company Info</div>
             </nav>
         </aside>
 
-        <main class="flex-1 overflow-y-auto bg-white p-8 relative">
+        <main class="flex-1 overflow-y-auto bg-slate-50 p-8 relative">
 
-            <section id="tab-studio" class="max-w-7xl mx-auto space-y-8">
+            <section id="tab-dash" class="space-y-6">
                 <div class="flex justify-between items-center">
-                    <h2 class="text-2xl font-bold text-slate-900">Eco-Design Simulation</h2>
-                    <span class="text-xs bg-slate-100 px-3 py-1 rounded-full text-slate-500 font-mono">Product: FW25-Run-001</span>
+                    <h2 class="text-2xl font-bold text-slate-900">Executive Overview</h2>
+                    <div class="text-sm text-slate-500 bg-white px-3 py-1 rounded border">Period: This Quarter <i class="fas fa-chevron-down ml-2"></i></div>
+                </div>
+
+                <div class="grid grid-cols-4 gap-6">
+                    <div class="card p-5 border-l-4 border-indigo-500">
+                        <div class="text-xs text-slate-500 font-bold uppercase">Total Carbon Footprint</div>
+                        <div class="text-3xl font-bold text-slate-900 mt-2">1,240 <span class="text-sm font-normal text-slate-500">tCO2e</span></div>
+                        <div class="text-xs text-green-600 mt-2 font-bold"><i class="fas fa-arrow-down"></i> 12% vs last year</div>
+                    </div>
+                    <div class="card p-5 border-l-4 border-green-500">
+                        <div class="text-xs text-slate-500 font-bold uppercase">Avg Product Score</div>
+                        <div class="text-3xl font-bold text-slate-900 mt-2">B+ <span class="text-sm font-normal text-slate-500">Grade</span></div>
+                        <div class="text-xs text-slate-500 mt-2">Top 15% in Industry</div>
+                    </div>
+                    <div class="card p-5 border-l-4 border-red-500">
+                        <div class="text-xs text-slate-500 font-bold uppercase">Compliance Risk</div>
+                        <div class="text-3xl font-bold text-red-600 mt-2">1 <span class="text-sm font-normal text-slate-500">Issue</span></div>
+                        <div class="text-xs text-slate-500 mt-2">EU ESPR (Recyclability)</div>
+                    </div>
+                    <div class="card p-5 border-l-4 border-orange-500">
+                        <div class="text-xs text-slate-500 font-bold uppercase">Supply Chain Nodes</div>
+                        <div class="text-3xl font-bold text-slate-900 mt-2">14 <span class="text-sm font-normal text-slate-500">Active</span></div>
+                        <div class="text-xs text-orange-600 mt-2"><i class="fas fa-exclamation-triangle"></i> 2 High Risk Regions</div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-6 h-[450px]">
+                    <div class="card flex flex-col">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-sm font-bold text-slate-800">Carbon Emission by Stage</h3>
+                            <button class="text-xs text-indigo-600 font-bold">View Details</button>
+                        </div>
+                        <div class="flex-1 relative">
+                            <canvas id="dashChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="card p-0 flex flex-col relative overflow-hidden">
+                        <div class="absolute top-4 left-4 z-[999] bg-white/90 px-3 py-1.5 rounded shadow text-xs font-bold text-slate-700 border">
+                            <i class="fas fa-globe-asia text-indigo-500 mr-1"></i> Live Supply Chain
+                        </div>
+                        <div id="map-container"></div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="tab-studio" class="hidden max-w-7xl mx-auto space-y-6">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-900">LCA Simulation Studio</h2>
+                        <p class="text-xs text-slate-500 mt-1">Configure parameters to analyze environmental impact.</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <button class="bg-white border border-slate-300 text-slate-700 px-4 py-2 rounded-lg text-sm font-bold shadow-sm hover:bg-slate-50">Reset</button>
+                        <button onclick="calculate()" class="bg-indigo-600 text-white px-6 py-2 rounded-lg text-sm font-bold shadow-md hover:bg-indigo-700 transition">
+                            <i class="fas fa-calculator mr-2"></i>Calculate Impact
+                        </button>
+                    </div>
                 </div>
 
                 <div class="grid grid-cols-12 gap-8">
-                    <div class="col-span-7 space-y-6">
-                        <div class="card p-5">
-                            <h3 class="text-sm font-bold text-slate-700 mb-3">1. Main Material</h3>
+                    <div class="col-span-8 grid grid-cols-2 gap-6">
+                        <div class="card col-span-2">
+                            <h3 class="text-sm font-bold text-indigo-600 mb-4 border-b pb-2">1. Material & Sourcing (Upstream)</h3>
                             <div class="grid grid-cols-2 gap-4">
-                                <div class="select-card selected" id="mat-virgin" onclick="selectMat('virgin')">
-                                    <div class="flex justify-between"><span class="font-bold text-sm">Virgin Poly</span><span class="text-xs text-red-500 font-bold">High Carbon</span></div>
-                                    <div class="text-xs text-slate-400 mt-1">Cost: $1.20 / kg</div>
+                                <div class="input-group">
+                                    <label class="input-label">Primary Material</label>
+                                    <select id="mat-type" class="select-box" onchange="calculate()">
+                                        <option value="virgin">Virgin Polyester (CN) - Low Cost</option>
+                                        <option value="recycled">Recycled Polyester (VN) - Eco</option>
+                                        <option value="bio">Bio-Nylon (KR) - Premium</option>
+                                    </select>
                                 </div>
-                                <div class="select-card" id="mat-recycled" onclick="selectMat('recycled')">
-                                    <div class="flex justify-between"><span class="font-bold text-sm">Recycled Poly</span><span class="text-xs text-green-500 font-bold">Low Carbon</span></div>
-                                    <div class="text-xs text-slate-400 mt-1">Cost: $1.45 / kg (+20%)</div>
+                                <div class="input-group">
+                                    <label class="input-label">Weight (kg/unit)</label>
+                                    <input type="number" id="mat-weight" value="0.35" class="select-box" oninput="calculate()">
                                 </div>
                             </div>
                         </div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div class="card p-4">
-                                <h3 class="text-sm font-bold mb-2">2. Logistics</h3>
-                                <select id="logis-mode" class="input-mini w-full" onchange="calc()"><option value="air">Air Freight (Fast)</option><option value="ship">Ocean Freight (Eco)</option></select>
+
+                        <div class="card">
+                            <h3 class="text-sm font-bold text-orange-600 mb-4 border-b pb-2">2. Logistics</h3>
+                            <div class="input-group">
+                                <label class="input-label">Transport Mode</label>
+                                <select id="logis-mode" class="select-box" onchange="calculate()">
+                                    <option value="air">Air Freight (Fast)</option>
+                                    <option value="ship">Ocean Freight (Eco)</option>
+                                    <option value="rail">Rail (EU Only)</option>
+                                </select>
                             </div>
-                            <div class="card p-4">
-                                <h3 class="text-sm font-bold mb-2">3. Energy Mix</h3>
-                                <input type="range" id="energy-slider" min="0" max="100" value="0" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer" oninput="calc()">
-                                <div class="text-right text-xs font-bold text-indigo-600 mt-1"><span id="energy-val">0</span>% Solar</div>
+                            <div class="input-group">
+                                <label class="input-label">Distance (km)</label>
+                                <input type="number" id="logis-dist" value="8500" class="select-box" oninput="calculate()">
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <h3 class="text-sm font-bold text-green-600 mb-4 border-b pb-2">3. End of Life (Circular)</h3>
+                            <div class="input-group">
+                                <label class="input-label">Recyclability Rate (%)</label>
+                                <input type="range" id="eol-rate" min="0" max="100" value="20" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer" oninput="calculate()">
+                                <div class="text-right text-xs font-bold mt-1 text-slate-500"><span id="eol-val">20</span>%</div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="col-span-5">
-                        <div class="card bg-slate-900 text-white mb-6">
-                            <h4 class="text-xs text-slate-400 uppercase font-bold">Total Footprint</h4>
-                            <div class="flex items-end gap-2 mt-2">
-                                <span class="text-5xl font-bold" id="res-total">15.5</span>
+                    <div class="col-span-4 space-y-4">
+                        <div class="card bg-slate-900 text-white relative overflow-hidden">
+                            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-leaf text-9xl"></i></div>
+                            <h4 class="text-xs text-slate-400 uppercase font-bold mb-1">Estimated Footprint</h4>
+                            <div class="flex items-end gap-2 mb-4">
+                                <span class="text-5xl font-bold tracking-tight" id="res-total">0.00</span>
                                 <span class="text-sm text-slate-400 mb-1">kgCO₂e</span>
                             </div>
-                            <div class="mt-4 flex gap-2">
-                                <span class="grade-badge bg-red-500 text-sm" id="res-grade">D</span>
-                                <span class="text-sm flex items-center">Industry Avg: 12.0</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="border-t border-slate-200 pt-8 mt-8">
-                    <h3 class="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-                        <i class="fas fa-briefcase text-slate-400"></i> Executive Decision Support
-                    </h3>
-                    <div class="grid grid-cols-3 gap-6">
-                        <div class="card">
-                            <h4 class="text-xs font-bold text-slate-500 uppercase mb-4">Cost vs Carbon Trade-off</h4>
-                            <div class="relative h-40">
-                                <canvas id="costChart"></canvas>
-                            </div>
-                            <p class="text-[10px] text-slate-400 mt-2 text-center" id="cost-msg">Base Cost maintained.</p>
-                        </div>
-                        
-                        <div class="card">
-                            <h4 class="text-xs font-bold text-slate-500 uppercase mb-4">Regulatory Compliance</h4>
-                            <div class="space-y-3">
-                                <div class="flex justify-between items-center text-sm">
-                                    <span>🇪🇺 EU CBAM</span>
-                                    <span class="font-bold text-green-600"><i class="fas fa-check-circle"></i> Pass</span>
-                                </div>
-                                <div class="flex justify-between items-center text-sm">
-                                    <span>🇪🇺 ESPR (Eco-Design)</span>
-                                    <span class="font-bold text-red-500" id="reg-espr"><i class="fas fa-times-circle"></i> Risk</span>
-                                </div>
-                                <div class="flex justify-between items-center text-sm">
-                                    <span>🇫🇷 AGEC Law</span>
-                                    <span class="font-bold text-yellow-500" id="reg-agec"><i class="fas fa-exclamation-circle"></i> Warning</span>
-                                </div>
+                            <div class="flex gap-2">
+                                <span class="badge badge-green hidden" id="badge-eco">Eco-Friendly</span>
+                                <span class="badge badge-red hidden" id="badge-high">High Impact</span>
                             </div>
                         </div>
 
-                        <div class="card bg-indigo-50 border-indigo-100">
-                            <h4 class="text-xs font-bold text-indigo-800 uppercase mb-4">Valid Marketing Claims</h4>
-                            <ul class="text-xs text-indigo-700 space-y-2 list-disc pl-4" id="claim-list">
-                                <li class="text-slate-400 line-through">"Low Carbon Product"</li>
-                                <li class="text-slate-400 line-through">"Made with Recycled Materials"</li>
+                        <div class="card">
+                            <h4 class="text-xs text-slate-500 uppercase font-bold mb-3">Breakdown</h4>
+                            <ul class="space-y-3 text-sm">
+                                <li class="flex justify-between"><span>Material</span><span class="font-bold text-slate-700" id="res-mat">0.00</span></li>
+                                <li class="flex justify-between"><span>Logistics</span><span class="font-bold text-slate-700" id="res-logis">0.00</span></li>
+                                <li class="flex justify-between"><span>Processing</span><span class="font-bold text-slate-700" id="res-mfg">0.00</span></li>
+                                <li class="flex justify-between border-t pt-2"><span>EOL</span><span class="font-bold text-slate-700" id="res-eol">0.00</span></li>
                             </ul>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <section id="tab-dpp" class="hidden space-y-8">
-                <div class="flex justify-between items-center">
-                    <h2 class="text-2xl font-bold">Digital Product Passport (DPP)</h2>
-                    <button class="bg-black text-white px-4 py-2 rounded text-sm font-bold"><i class="fas fa-download mr-2"></i>Export JSON</button>
-                </div>
-                
-                <div class="grid grid-cols-2 gap-12 items-center">
-                    <div class="flex justify-center">
-                        <div class="dpp-card w-full">
-                            <div class="text-center mb-6">
-                                <div class="w-16 h-16 bg-white rounded-lg mx-auto mb-3 flex items-center justify-center text-slate-900 text-2xl font-bold">K</div>
-                                <h3 class="font-bold text-lg">FW25 Sneaker</h3>
-                                <p class="text-xs text-slate-400">ID: 880-1234-5678</p>
-                            </div>
-                            <div class="bg-white/10 p-4 rounded-lg mb-4 text-center">
-                                <i class="fas fa-qrcode text-6xl text-white"></i>
-                                <p class="text-[10px] mt-2 text-slate-300">Scan to view traceability</p>
-                            </div>
-                            <div class="space-y-3 text-xs">
-                                <div class="flex justify-between border-b border-white/10 pb-2"><span>Carbon Footprint</span><span class="font-bold text-green-400" id="dpp-carbon">15.5 kg</span></div>
-                                <div class="flex justify-between border-b border-white/10 pb-2"><span>Recycled Content</span><span class="font-bold" id="dpp-recycle">0%</span></div>
-                                <div class="flex justify-between border-b border-white/10 pb-2"><span>Origin</span><span class="font-bold">Vietnam</span></div>
-                                <div class="flex justify-between"><span>Recyclability</span><span class="font-bold">Class B</span></div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="card bg-slate-900 text-green-400 font-mono text-xs p-6 h-96 overflow-y-auto">
-                        <h4 class="text-white mb-2 font-bold">// ESPR Compliance Data (JSON)</h4>
-                        <pre id="dpp-json">
-{
-  "product_id": "FW25-001",
-  "sustainability": {
-    "gwp_total": 15.5,
-    "methodology": "ISO 14067",
-    "verification": "Third-party"
-  },
-  "materials": [
-    { "name": "Virgin Poly", "origin": "CN", "pct": 100 }
-  ]
-}
-                        </pre>
+            <section id="tab-report" class="hidden max-w-5xl mx-auto">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold">Compliance Report Generation</h2>
+                    <div class="flex gap-2 items-center">
+                        <span class="text-xs font-bold text-slate-500">Regulation Standard:</span>
+                        <select id="report-type" class="bg-white border border-slate-300 rounded px-3 py-1.5 text-sm font-bold" onchange="updateReport()">
+                            <option value="cbam">EU CBAM (Carbon Border Tax)</option>
+                            <option value="agec">France AGEC (Eco-Label)</option>
+                            <option value="sec">US SEC (Climate Disclosure)</option>
+                        </select>
+                        <button class="bg-black text-white px-4 py-1.5 rounded text-sm font-bold ml-2"><i class="fas fa-download mr-1"></i> PDF</button>
                     </div>
                 </div>
-            </section>
 
-            <section id="tab-report" class="hidden flex justify-center">
-                <div class="bg-white shadow-2xl border p-16 w-[210mm] min-h-[297mm]">
-                    <div class="border-b-2 border-black pb-4 mb-8 flex justify-between items-end">
+                <div class="bg-white shadow-lg border p-12 min-h-[800px] relative">
+                    <div class="absolute inset-0 flex items-center justify-center opacity-5 pointer-events-none">
+                        <span class="text-9xl font-bold uppercase rotate-45">Official Copy</span>
+                    </div>
+
+                    <div class="border-b-2 border-slate-800 pb-6 mb-8 flex justify-between items-end">
                         <div>
-                            <h1 class="text-3xl font-bold text-slate-900">PCFs Verification Report</h1>
-                            <p class="text-sm text-slate-500 mt-1">According to ISO 14067:2018 & GHGP Product Standard</p>
+                            <h1 class="text-3xl font-bold text-slate-900" id="rpt-title">Carbon Footprint Declaration</h1>
+                            <p class="text-sm text-slate-500 mt-2" id="rpt-subtitle">Compliant with ISO 14067 & EU Regulations</p>
                         </div>
-                        <div class="text-right">
-                            <div class="w-20 h-20 bg-slate-900 text-white flex items-center justify-center font-bold text-xs rounded mb-1">QR Code</div>
-                            <span class="text-xs font-mono">ID: R-2025-X99</span>
+                        <div class="text-right text-xs">
+                            <div><strong>Ref No:</strong> KSI-2025-0092</div>
+                            <div><strong>Date:</strong> <span id="rpt-date">2025-12-23</span></div>
                         </div>
                     </div>
-                    
-                    <table class="w-full text-sm border-collapse mb-8">
-                        <tr class="bg-slate-100 border-y border-slate-300"><th class="text-left p-2">Life Cycle Stage</th><th class="text-right p-2">GWP (kgCO2e)</th><th class="text-right p-2">Share (%)</th></tr>
-                        <tr class="border-b"><td class="p-2">Raw Material Acquisition</td><td class="text-right p-2 font-mono" id="rpt-mat">8.50</td><td class="text-right p-2">54.8%</td></tr>
-                        <tr class="border-b"><td class="p-2">Production</td><td class="text-right p-2 font-mono" id="rpt-mfg">4.00</td><td class="text-right p-2">25.8%</td></tr>
-                        <tr class="border-b"><td class="p-2">Distribution</td><td class="text-right p-2 font-mono" id="rpt-dist">2.50</td><td class="text-right p-2">16.1%</td></tr>
-                        <tr class="border-b"><td class="p-2">End-of-Life</td><td class="text-right p-2 font-mono" id="rpt-eol">0.50</td><td class="text-right p-2">3.2%</td></tr>
-                        <tr class="font-bold bg-slate-50"><td class="p-2">Total</td><td class="text-right p-2" id="rpt-total">15.50</td><td class="text-right p-2">100%</td></tr>
+
+                    <div class="grid grid-cols-3 gap-8 mb-8">
+                        <div class="col-span-1 bg-slate-50 p-4 rounded border">
+                            <div class="text-xs text-slate-500 font-bold uppercase">Product</div>
+                            <div class="font-bold text-lg mt-1">Running Shoe v2</div>
+                        </div>
+                        <div class="col-span-1 bg-slate-50 p-4 rounded border">
+                            <div class="text-xs text-slate-500 font-bold uppercase">Total GWP</div>
+                            <div class="font-bold text-lg mt-1 text-indigo-700"><span id="rpt-total">0.00</span> kgCO2e</div>
+                        </div>
+                        <div class="col-span-1 bg-slate-50 p-4 rounded border">
+                            <div class="text-xs text-slate-500 font-bold uppercase">Scope</div>
+                            <div class="font-bold text-lg mt-1">Cradle-to-Grave</div>
+                        </div>
+                    </div>
+
+                    <div class="mb-8">
+                        <h3 class="text-sm font-bold border-b pb-2 mb-4">Detailed Breakdown</h3>
+                        <table class="w-full text-sm">
+                            <thead class="bg-slate-100 text-xs uppercase font-bold"><tr><th class="p-2 text-left">Stage</th><th class="p-2 text-right">Emissions (kg)</th><th class="p-2 text-right">% Share</th></tr></thead>
+                            <tbody id="rpt-body"></tbody>
+                        </table>
+                    </div>
+
+                    <div class="bg-indigo-50 border border-indigo-100 p-4 rounded text-xs text-indigo-800" id="rpt-disclaimer">
+                        <strong>Certification Statement:</strong> This calculation has been verified against the selected regulatory framework. Data sources include primary OCR data and secondary ecoinvent v3.8 datasets.
+                    </div>
+                </div>
+            </section>
+
+            <section id="tab-dpp" class="hidden space-y-8">
+                <div class="flex justify-center">
+                    <div class="phone-mockup">
+                        <div class="dpp-header">
+                            <div class="text-xs opacity-80 uppercase">Digital Product Passport</div>
+                            <div class="text-xl font-bold mt-1">Eco-ID™</div>
+                        </div>
+                        <div class="p-6 overflow-y-auto h-[500px]">
+                            <div class="flex justify-center mb-6">
+                                <img src="https://via.placeholder.com/150" class="w-32 h-32 rounded-xl object-cover shadow-lg">
+                            </div>
+                            <h2 class="text-center font-bold text-lg text-slate-800 mb-1">FW25 Sneaker</h2>
+                            <p class="text-center text-xs text-slate-500 mb-6">ID: 880-9921-22</p>
+
+                            <div class="space-y-4">
+                                <div class="bg-slate-50 p-4 rounded-xl border">
+                                    <div class="text-xs text-slate-500 font-bold">Carbon Footprint</div>
+                                    <div class="text-2xl font-bold text-indigo-600" id="dpp-carbon">0.0 kg</div>
+                                    <div class="w-full bg-slate-200 h-1.5 rounded-full mt-2"><div class="bg-indigo-500 h-full" style="width: 60%"></div></div>
+                                </div>
+                                <div class="bg-slate-50 p-4 rounded-xl border">
+                                    <div class="text-xs text-slate-500 font-bold mb-2">Material Composition</div>
+                                    <div class="flex justify-between text-xs mb-1"><span>Polyester</span><span class="font-bold">80%</span></div>
+                                    <div class="flex justify-between text-xs"><span>EVA</span><span class="font-bold">20%</span></div>
+                                </div>
+                                <div class="bg-slate-50 p-4 rounded-xl border">
+                                    <div class="text-xs text-slate-500 font-bold mb-2">Recyclability</div>
+                                    <div class="flex items-center gap-2">
+                                        <i class="fas fa-recycle text-green-500 text-xl"></i>
+                                        <span class="text-sm font-bold text-slate-700">Class B (High)</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-8 text-center">
+                                <i class="fas fa-qrcode text-6xl text-slate-800"></i>
+                                <p class="text-[10px] text-slate-400 mt-2">Scan to verify on Blockchain</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="tab-supply" class="hidden">
+                <h2 class="text-2xl font-bold mb-6">Supply Chain Management</h2>
+                <div class="card p-0 overflow-hidden">
+                    <table class="w-full text-sm text-left">
+                        <thead class="bg-slate-50 border-b text-xs uppercase font-bold text-slate-500">
+                            <tr><th class="p-4">Supplier Name</th><th class="p-4">Location</th><th class="p-4">Material</th><th class="p-4">Risk Level</th><th class="p-4 text-right">Audit Status</th></tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            <tr><td class="p-4 font-bold">Shanghai Tex Co.</td><td class="p-4">China</td><td class="p-4">Polyester</td><td class="p-4"><span class="badge badge-yellow">Medium</span></td><td class="p-4 text-right text-green-600"><i class="fas fa-check"></i> Valid</td></tr>
+                            <tr><td class="p-4 font-bold">Hanoi Synthetics</td><td class="p-4">Vietnam</td><td class="p-4">EVA Foam</td><td class="p-4"><span class="badge badge-green">Low</span></td><td class="p-4 text-right text-green-600"><i class="fas fa-check"></i> Valid</td></tr>
+                            <tr><td class="p-4 font-bold">Busan Chem</td><td class="p-4">Korea</td><td class="p-4">Adhesives</td><td class="p-4"><span class="badge badge-green">Low</span></td><td class="p-4 text-right text-slate-400">Pending</td></tr>
+                        </tbody>
                     </table>
+                </div>
+            </section>
 
-                    <div class="bg-indigo-50 border border-indigo-100 p-4 rounded text-xs text-indigo-800">
-                        <strong>Statement:</strong> This product meets the reporting requirements of the EU Ecodesign for Sustainable Products Regulation (ESPR). The calculation includes all greenhouse gases expressed as CO2 equivalent (100-year GWP).
+            <section id="tab-history" class="hidden">
+                <h2 class="text-2xl font-bold mb-6">Calculation History</h2>
+                <div class="card p-0 overflow-hidden">
+                    <table class="w-full text-sm text-left">
+                        <thead class="bg-slate-50 border-b text-xs uppercase font-bold text-slate-500">
+                            <tr><th class="p-4">Date</th><th class="p-4">Project</th><th class="p-4">Result</th><th class="p-4">User</th><th class="p-4 text-right">Action</th></tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            <tr><td class="p-4">2025-12-23</td><td class="p-4 font-bold">Running Shoe v2</td><td class="p-4">15.5 kg</td><td class="p-4">Kim CEO</td><td class="p-4 text-right"><button class="text-indigo-600 hover:underline">View</button></td></tr>
+                            <tr><td class="p-4">2025-12-20</td><td class="p-4 font-bold">Basic Tee SS26</td><td class="p-4">5.2 kg</td><td class="p-4">Designer Lee</td><td class="p-4 text-right"><button class="text-indigo-600 hover:underline">View</button></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="tab-company" class="hidden">
+                <h2 class="text-2xl font-bold mb-6">Company Profile</h2>
+                <div class="grid grid-cols-2 gap-6">
+                    <div class="card">
+                        <h3 class="font-bold text-lg mb-4">Basic Info</h3>
+                        <div class="space-y-4">
+                            <div><label class="block text-xs font-bold text-slate-500">Company Name</label><input type="text" value="KSIKR Fashion Ltd." class="select-box mt-1"></div>
+                            <div><label class="block text-xs font-bold text-slate-500">Business Reg No.</label><input type="text" value="123-45-67890" class="select-box mt-1"></div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3 class="font-bold text-lg mb-4">Sustainability Goals</h3>
+                        <div class="space-y-4">
+                            <div><label class="block text-xs font-bold text-slate-500">Target Year</label><input type="text" value="2030 Net Zero" class="select-box mt-1"></div>
+                            <div><label class="block text-xs font-bold text-slate-500">Certification</label><div class="flex gap-2 mt-1"><span class="badge bg-slate-100 border">ISO 14001</span><span class="badge bg-slate-100 border">GRS</span></div></div>
+                        </div>
                     </div>
                 </div>
             </section>
-
-            <section id="tab-dash" class="hidden h-full flex flex-col">
-                <h2 class="text-2xl font-bold mb-4">Global Supply Chain Dashboard</h2>
-                <div class="card flex-1 p-0 relative overflow-hidden">
-                    <div class="absolute top-4 left-4 z-[999] bg-white/90 px-3 py-1 rounded shadow text-xs font-bold">Real-time Node Map</div>
-                    <div id="map-container"></div>
-                </div>
-            </section>
-
-            <section id="tab-supply" class="hidden"><div class="card p-20 text-center text-slate-400">Detailed SCM Table</div></section>
-            <section id="tab-history" class="hidden"><div class="card p-20 text-center text-slate-400">Calculation History Log</div></section>
-            <section id="tab-company" class="hidden"><div class="card p-20 text-center text-slate-400">Company Profile Settings</div></section>
 
         </main>
     </div>
 
     <script>
         // --- DATA & STATE ---
-        const BASELINE_COST = 25.0; // Material cost per pair
-        let STATE = { mat: 'virgin', logis: 'air', energy: 0 };
+        const DB = {
+            mat: { virgin: 8.5, recycled: 5.5, bio: 6.0 },
+            logis: { air: 3.5, ship: 0.3, rail: 0.5 },
+            mfg: 4.0,
+            eolBase: 0.5
+        };
         
-        let CHART = null;
-        let MAP = null;
+        let CHART_INSTANCE = null;
+        let MAP_INSTANCE = null;
 
-        // --- CALCULATION LOGIC ---
-        function calc() {
-            // 1. Carbon Impact
-            const matImpact = STATE.mat === 'virgin' ? 8.5 : 5.5;
-            const logisImpact = STATE.logis === 'air' ? 2.5 : 0.3;
-            const mfgImpact = 4.0 * (1 - (STATE.energy * 0.008));
-            const total = matImpact + logisImpact + mfgImpact + 0.5;
+        // --- CORE CALCULATION ---
+        function calculate() {
+            // Inputs
+            const matType = document.getElementById('mat-type').value;
+            const w = parseFloat(document.getElementById('mat-weight').value);
+            const logisType = document.getElementById('logis-mode').value;
+            const dist = parseFloat(document.getElementById('logis-dist').value);
+            const eolPct = document.getElementById('eol-rate').value;
+            document.getElementById('eol-val').innerText = eolPct;
 
-            // 2. Cost Impact (The CEO Metric)
-            const matCost = STATE.mat === 'virgin' ? 10.0 : 12.5; // Recycled is expensive
-            const totalCost = BASELINE_COST + (matCost - 10.0);
+            // Calc
+            const matImpact = DB.mat[matType] * (w / 0.35); // Normalize to base weight
+            const logisImpact = (w * dist * (logisType==='air'?0.002:0.0001)); // simplified factor
+            const mfgImpact = DB.mfg;
+            const eolImpact = DB.eolBase * (1 - eolPct/200); // Higher recycling = lower impact
 
-            // 3. Update UI Numbers
-            document.getElementById('res-total').innerText = total.toFixed(1);
-            document.getElementById('rpt-total').innerText = total.toFixed(2);
-            document.getElementById('rpt-mat').innerText = matImpact.toFixed(2);
-            document.getElementById('dpp-carbon').innerText = total.toFixed(1) + " kg";
+            const total = matImpact + logisImpact + mfgImpact + eolImpact;
+
+            // UI Updates
+            updateText('res-total', total.toFixed(2));
+            updateText('res-mat', matImpact.toFixed(2));
+            updateText('res-logis', logisImpact.toFixed(2));
+            updateText('res-mfg', mfgImpact.toFixed(2));
+            updateText('res-eol', eolImpact.toFixed(2));
             
-            // Grade & Badge
-            const gradeEl = document.getElementById('res-grade');
-            if (total < 12) { gradeEl.innerText = "A"; gradeEl.className = "grade-badge bg-green-500 text-sm"; }
-            else if (total < 14) { gradeEl.innerText = "B"; gradeEl.className = "grade-badge bg-green-300 text-sm"; }
-            else { gradeEl.innerText = "D"; gradeEl.className = "grade-badge bg-red-500 text-sm"; }
+            // DPP & Report Sync
+            updateText('dpp-carbon', total.toFixed(2) + " kg");
+            updateText('rpt-total', total.toFixed(2));
+            updateReportTable(matImpact, logisImpact, mfgImpact, eolImpact, total);
 
-            // 4. Update Charts & JSON
-            updateCostChart(totalCost);
-            updateExecutivePanel(total, STATE.mat);
-            updateDPPJSON(total);
+            // Badge
+            document.getElementById('badge-eco').classList.toggle('hidden', total > 12);
+            document.getElementById('badge-high').classList.toggle('hidden', total <= 12);
         }
 
-        function updateExecutivePanel(total, matType) {
-            // Claims
-            const claimList = document.getElementById('claim-list');
-            if (total < 13 && matType === 'recycled') {
-                claimList.innerHTML = `
-                    <li class="font-bold"><i class="fas fa-check mr-1"></i> "Low Carbon Product" (Allowed)</li>
-                    <li class="font-bold"><i class="fas fa-check mr-1"></i> "Contains Recycled Material" (Allowed)</li>
-                `;
-                document.getElementById('reg-espr').innerHTML = `<i class="fas fa-check-circle"></i> Pass`;
-                document.getElementById('reg-espr').className = "font-bold text-green-600";
-            } else {
-                claimList.innerHTML = `<li class="text-slate-400 italic">No valid claims available. Reduce carbon to unlock.</li>`;
-                document.getElementById('reg-espr').innerHTML = `<i class="fas fa-times-circle"></i> Risk`;
-                document.getElementById('reg-espr').className = "font-bold text-red-500";
-            }
+        function updateText(id, val) { document.getElementById(id).innerText = val; }
+
+        function updateReportTable(m, l, p, e, t) {
+            const tbody = document.getElementById('rpt-body');
+            tbody.innerHTML = `
+                <tr class="border-b"><td class="p-2">Material Acquisition</td><td class="p-2 text-right">${m.toFixed(2)}</td><td class="p-2 text-right">${(m/t*100).toFixed(1)}%</td></tr>
+                <tr class="border-b"><td class="p-2">Logistics</td><td class="p-2 text-right">${l.toFixed(2)}</td><td class="p-2 text-right">${(l/t*100).toFixed(1)}%</td></tr>
+                <tr class="border-b"><td class="p-2">Production</td><td class="p-2 text-right">${p.toFixed(2)}</td><td class="p-2 text-right">${(p/t*100).toFixed(1)}%</td></tr>
+                <tr class="border-b"><td class="p-2">End of Life</td><td class="p-2 text-right">${e.toFixed(2)}</td><td class="p-2 text-right">${(e/t*100).toFixed(1)}%</td></tr>
+            `;
         }
 
-        function updateDPPJSON(total) {
-            const json = {
-                "product_id": "FW25-001",
-                "compliance": { "espr": total < 13, "cbam": true },
-                "carbon": { "total": total.toFixed(2), "unit": "kgCO2e" },
-                "material": STATE.mat === 'virgin' ? "100% Virgin PES" : "100% rPET (GRS Certified)"
-            };
-            document.getElementById('dpp-json').innerText = JSON.stringify(json, null, 2);
-            document.getElementById('dpp-recycle').innerText = STATE.mat === 'virgin' ? "0%" : "100%";
+        function updateReport() {
+            const type = document.getElementById('report-type').value;
+            const title = document.getElementById('rpt-title');
+            const sub = document.getElementById('rpt-subtitle');
+            
+            if(type === 'cbam') { title.innerText = "CBAM Declaration"; sub.innerText = "EU Regulation 2023/956"; }
+            else if(type === 'agec') { title.innerText = "AGEC Product Sheet"; sub.innerText = "Article 13 Compliance"; }
+            else { title.innerText = "SEC Climate Disclosure"; sub.innerText = "Scope 3 Materiality"; }
         }
-
-        // --- INTERACTIONS ---
-        function selectMat(type) {
-            STATE.mat = type;
-            document.querySelectorAll('.select-card').forEach(el => el.classList.remove('selected'));
-            document.getElementById('mat-' + type).classList.add('selected');
-            calc();
-        }
-        
-        document.getElementById('logis-mode').addEventListener('change', (e) => { STATE.logis = e.target.value; calc(); });
-        document.getElementById('energy-slider').addEventListener('input', (e) => { 
-            STATE.energy = e.target.value; 
-            document.getElementById('energy-val').innerText = e.target.value; 
-            calc(); 
-        });
 
         // --- VISUALS ---
-        function initCostChart() {
-            const ctx = document.getElementById('costChart').getContext('2d');
-            CHART = new Chart(ctx, {
+        function initChart() {
+            const ctx = document.getElementById('dashChart').getContext('2d');
+            CHART_INSTANCE = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: ['Cost ($)', 'Carbon (kg)'],
-                    datasets: [{
-                        label: 'Impact',
-                        data: [25, 15.5],
-                        backgroundColor: ['#64748b', '#ef4444'],
-                        borderRadius: 4
-                    }]
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr'],
+                    datasets: [{ label: 'Emissions', data: [120, 115, 110, 105], backgroundColor: '#4f46e5', borderRadius: 4 }]
                 },
-                options: { 
-                    responsive: true, 
-                    maintainAspectRatio: false, 
-                    indexAxis: 'y',
-                    plugins: { legend: { display: false } } 
-                }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
             });
         }
 
-        function updateCostChart(cost) {
-            if(CHART) {
-                CHART.data.datasets[0].data[0] = cost;
-                // Color change based on trade-off
-                CHART.data.datasets[0].backgroundColor[0] = cost > 25 ? '#ef4444' : '#64748b'; 
-                CHART.update();
-                document.getElementById('cost-msg').innerText = cost > 25 ? `Warning: Cost increased by $${(cost-25).toFixed(2)}` : "Cost stable.";
-            }
-        }
-
         function initMap() {
-            if(MAP) return;
-            MAP = L.map('map-container').setView([20, 100], 3);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OSM' }).addTo(MAP);
-            L.circleMarker([37.56, 126.97], { color:'red', radius:5 }).addTo(MAP).bindPopup('Seoul');
-            L.circleMarker([21.02, 105.85], { color:'orange', radius:5 }).addTo(MAP).bindPopup('Hanoi');
+            if(MAP_INSTANCE) return;
+            MAP_INSTANCE = L.map('map-container').setView([20, 105], 3);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OSM' }).addTo(MAP_INSTANCE);
+            L.circleMarker([37.56, 126.97], { color:'red', radius:5 }).addTo(MAP_INSTANCE).bindPopup('Seoul HQ');
+            L.circleMarker([21.02, 105.85], { color:'orange', radius:5 }).addTo(MAP_INSTANCE).bindPopup('Factory');
+            L.circleMarker([31.23, 121.47], { color:'blue', radius:5 }).addTo(MAP_INSTANCE).bindPopup('Supplier');
         }
 
+        // --- TABS ---
         function setTab(id) {
             document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
             document.getElementById('tab-' + id).classList.remove('hidden');
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             document.getElementById('nav-' + id).classList.add('active');
             
-            if(id === 'dash' && MAP) setTimeout(() => MAP.invalidateSize(), 100);
+            if(id === 'dash' && MAP_INSTANCE) setTimeout(() => MAP_INSTANCE.invalidateSize(), 100);
         }
 
+        // INIT
         window.onload = function() {
-            initCostChart();
+            initChart();
             setTimeout(initMap, 200);
-            calc();
+            calculate();
         };
     </script>
 </body>
