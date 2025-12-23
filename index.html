@@ -3,291 +3,386 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KSIKR - Visual Fixed (v1200)</title>
+    <title>KSIKR - Insight LCA (v1700)</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700&display=swap');
-        body { font-family: 'Pretendard', sans-serif; background-color: #f1f5f9; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #1e293b; }
 
-        /* UI Components */
-        .nav-item { padding: 12px; border-radius: 8px; color: #64748b; font-size: 14px; font-weight: 500; cursor: pointer; display: flex; align-items: center; transition: 0.2s; }
-        .nav-item:hover { background: #f8fafc; color: #1e293b; }
-        .nav-item.active { background: #e0e7ff; color: #4338ca; font-weight: 700; }
-        
-        .card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-        
-        /* Map Fix: 높이 강제 지정 */
-        #map-container { height: 100%; width: 100%; min-height: 350px; z-index: 1; border-radius: 8px; }
-        
-        /* Chart Fix */
-        .chart-container { position: relative; height: 350px; width: 100%; }
+        /* UI Styles */
+        .nav-item { padding: 12px 16px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; display: flex; align-items: center; transition: all 0.2s; color: #64748b; margin-bottom: 4px; }
+        .nav-item:hover { background: #f1f5f9; color: #0f172a; }
+        .nav-item.active { background: #eff6ff; color: #4338ca; font-weight: 700; border-right: 4px solid #4338ca; }
 
-        /* Animations */
-        .scanner-line { position: absolute; width: 100%; height: 2px; background: #3b82f6; top: 0; animation: scan 1.5s infinite; display: none; }
-        @keyframes scan { 0% { top: 0%; } 100% { top: 100%; } }
-        .scanning .scanner-line { display: block; }
+        /* Selection Cards */
+        .select-card { border: 2px solid #e2e8f0; border-radius: 12px; padding: 16px; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); background: white; position: relative; overflow: hidden; }
+        .select-card:hover { transform: translateY(-4px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); border-color: #cbd5e1; }
+        .select-card.selected { border-color: #4f46e5; background-color: #eef2ff; ring: 1px solid #4f46e5; }
+        .select-card.selected::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: #4f46e5; }
+
+        /* Grade Badge */
+        .grade-badge { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 900; color: white; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .grade-A { background: #10b981; } .grade-B { background: #84cc16; } .grade-C { background: #f59e0b; } .grade-D { background: #f97316; } .grade-E { background: #ef4444; }
+
+        /* Map & Chart Containers */
+        #map-container { height: 100%; width: 100%; min-height: 400px; border-radius: 12px; z-index: 1; }
+        .chart-wrap { position: relative; height: 250px; width: 100%; }
     </style>
 </head>
-<body class="h-screen flex flex-col overflow-hidden text-slate-800">
+<body class="h-screen flex flex-col overflow-hidden">
 
-    <header class="h-14 bg-slate-900 text-white flex items-center justify-between px-6 shrink-0 z-50">
-        <div class="flex items-center gap-4">
-            <div class="w-8 h-8 bg-indigo-600 rounded flex items-center justify-center font-bold text-lg">K</div>
-            <h1 class="font-bold text-base">KSIKR <span class="text-slate-400 font-normal">v1200 (Visual Fixed)</span></h1>
+    <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 shrink-0 z-50">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-gradient-to-tr from-indigo-600 to-violet-600 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-lg">K</div>
+            <div>
+                <h1 class="font-bold text-sm tracking-tight text-slate-900">KSIKR <span class="text-indigo-600">Insight</span></h1>
+                <p class="text-[10px] text-slate-500">Intelligent Eco-Design Platform</p>
+            </div>
         </div>
-        <div class="text-xs bg-slate-800 px-3 py-1 rounded border border-slate-700">
-            <i class="fas fa-satellite text-green-400 mr-2"></i>Map & Chart Online
+        <div class="flex items-center gap-4">
+            <div class="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-full border">
+                <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                <span class="text-xs font-bold text-slate-600">System Ready</span>
+            </div>
+            <div class="w-9 h-9 rounded-full bg-slate-200 overflow-hidden border border-white shadow-sm">
+                <i class="fas fa-user text-slate-400 text-xl relative top-1 left-2"></i>
+            </div>
         </div>
     </header>
 
     <div class="flex flex-1 overflow-hidden">
+        
         <aside class="w-64 bg-white border-r border-slate-200 flex flex-col p-4 z-40">
-            <nav class="space-y-1">
-                <div class="nav-item active" onclick="setTab('dash')" id="nav-dash"><i class="fas fa-chart-pie w-5 mr-2"></i> 대시보드</div>
-                <div class="nav-item" onclick="setTab('lca')" id="nav-lca"><i class="fas fa-calculator w-5 mr-2"></i> 정밀 전과정평가</div>
-                <div class="nav-item" onclick="setTab('report')" id="nav-report"><i class="fas fa-file-contract w-5 mr-2"></i> 인증 리포트</div>
+            <nav class="flex-1 space-y-1">
+                <div class="text-[10px] font-bold text-slate-400 uppercase px-2 mb-2 tracking-wider">Core Modules</div>
+                <div class="nav-item active" onclick="setTab('studio')" id="nav-studio"><i class="fas fa-magic w-5 text-indigo-500"></i> Smart Studio</div>
+                <div class="nav-item" onclick="setTab('dash')" id="nav-dash"><i class="fas fa-columns w-5"></i> Dashboard</div>
+                
+                <div class="text-[10px] font-bold text-slate-400 uppercase px-2 mb-2 mt-6 tracking-wider">Validation</div>
+                <div class="nav-item" onclick="setTab('report')" id="nav-report"><i class="fas fa-certificate w-5"></i> ISO Report</div>
+                <div class="nav-item" onclick="setTab('supply')" id="nav-supply"><i class="fas fa-map-marked-alt w-5"></i> Supply Chain</div>
             </nav>
+            
+            <div class="mt-auto bg-slate-50 p-4 rounded-xl border border-slate-200">
+                <div class="text-[10px] text-slate-400 uppercase font-bold mb-2">Industry Benchmark</div>
+                <div class="flex items-end justify-between">
+                    <div>
+                        <div class="text-xs text-slate-500">Your Product</div>
+                        <div class="text-lg font-bold text-indigo-600" id="mini-score">--</div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-xs text-slate-500">Avg.</div>
+                        <div class="text-lg font-bold text-slate-400">18.0</div>
+                    </div>
+                </div>
+                <div class="w-full bg-slate-200 h-1.5 rounded-full mt-2 overflow-hidden">
+                    <div id="mini-bar" class="bg-indigo-500 h-full transition-all duration-1000" style="width: 0%"></div>
+                </div>
+            </div>
         </aside>
 
-        <main class="flex-1 overflow-y-auto bg-slate-50 p-8 relative">
+        <main class="flex-1 overflow-y-auto bg-white p-8 relative scroll-smooth">
 
-            <section id="tab-dash" class="space-y-6">
-                <h2 class="text-2xl font-bold text-slate-900">Enterprise Dashboard</h2>
+            <section id="tab-studio" class="max-w-7xl mx-auto space-y-8">
                 
-                <div class="grid grid-cols-4 gap-4">
-                    <div class="card bg-slate-900 text-white border-0">
-                        <div class="text-xs text-slate-400">Total GWP</div>
-                        <div class="text-3xl font-bold mt-1"><span id="dash-total">0.00</span> <span class="text-sm">kgCO2e</span></div>
+                <div class="flex justify-between items-end border-b pb-4">
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-900">Design Simulation</h2>
+                        <p class="text-sm text-slate-500 mt-1">Select options to see real-time carbon impact and cost trade-offs.</p>
                     </div>
-                    <div class="card"><div class="text-xs text-slate-500">Nodes</div><div class="text-xl font-bold mt-2">4 Active</div></div>
-                    <div class="card"><div class="text-xs text-slate-500">DCI Score</div><div class="text-xl font-bold mt-2 text-green-600">A (High)</div></div>
-                    <div class="card"><div class="text-xs text-slate-500">Hotspot</div><div class="text-xl font-bold mt-2 text-red-500">Vietnam</div></div>
+                    <div class="flex items-center gap-3">
+                        <span class="text-xs font-bold text-slate-400 uppercase">Current Grade</span>
+                        <div id="main-grade" class="grade-badge grade-C transition-all duration-500">C</div>
+                    </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-6">
+                <div class="grid grid-cols-12 gap-8">
                     
-                    <div class="card flex flex-col h-[450px]"> 
-                        <h3 class="font-bold text-sm mb-4">Stage Breakdown (Chart.js)</h3>
-                        <div class="chart-container">
-                            <canvas id="dashChart"></canvas>
-                        </div>
-                    </div>
-                    
-                    <div class="card flex flex-col h-[450px] p-0 overflow-hidden relative">
-                        <div class="absolute top-4 left-4 z-[999] bg-white/90 px-3 py-1 rounded shadow text-xs font-bold">
-                            Live Supply Chain (Leaflet)
-                        </div>
-                        <div id="map-container"></div>
-                    </div>
-                </div>
-            </section>
+                    <div class="col-span-7 space-y-8">
+                        
+                        <div>
+                            <div class="flex justify-between items-center mb-3">
+                                <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                                    <span class="bg-slate-800 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs">1</span>
+                                    Main Material
+                                </h3>
+                                <span class="text-xs text-indigo-600 font-bold cursor-pointer hover:underline"><i class="fas fa-robot mr-1"></i>AI Suggestion</span>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="select-card selected" id="mat-virgin" onclick="selectMat('virgin')">
+                                    <div class="flex justify-between items-start">
+                                        <div>
+                                            <h4 class="font-bold text-slate-700">Virgin Polyester</h4>
+                                            <p class="text-xs text-slate-500 mt-1"><i class="fas fa-map-marker-alt mr-1"></i>Zhejiang, China</p>
+                                        </div>
+                                        <div class="text-right">
+                                            <div class="text-sm font-bold text-red-500">High</div>
+                                            <div class="text-[10px] text-slate-400">Carbon</div>
+                                        </div>
+                                    </div>
+                                    <div class="mt-3 flex items-center gap-2 text-[10px] text-slate-500 bg-slate-100 p-1.5 rounded">
+                                        <i class="fas fa-dollar-sign text-slate-400"></i> Low Cost
+                                    </div>
+                                </div>
 
-            <section id="tab-lca" class="hidden max-w-6xl mx-auto space-y-6">
-                <div class="flex justify-between items-center">
-                    <h2 class="text-xl font-bold">정밀 LCA 평가</h2>
-                    <button onclick="runCalc()" class="bg-indigo-600 text-white px-4 py-2 rounded font-bold text-sm hover:bg-indigo-700">Calculate & Sync</button>
-                </div>
-
-                <div class="grid grid-cols-12 gap-6">
-                    <div class="col-span-8 space-y-6">
-                        <div class="card relative">
-                            <div class="flex justify-between mb-4">
-                                <h3 class="font-bold text-sm">Upstream Input</h3>
-                                <div id="btn-ocr" class="cursor-pointer text-xs bg-blue-50 text-blue-600 px-3 py-1 rounded font-bold border border-blue-200">
-                                    <i class="fas fa-camera mr-1"></i> AI OCR Scan
-                                    <div class="scanner-line" id="ocr-scan-line"></div>
+                                <div class="select-card" id="mat-recycled" onclick="selectMat('recycled')">
+                                    <div class="flex justify-between items-start">
+                                        <div>
+                                            <h4 class="font-bold text-slate-700">Recycled Poly (rPET)</h4>
+                                            <p class="text-xs text-slate-500 mt-1"><i class="fas fa-map-marker-alt mr-1"></i>Hanoi, Vietnam</p>
+                                        </div>
+                                        <div class="text-right">
+                                            <div class="text-sm font-bold text-green-500">Low</div>
+                                            <div class="text-[10px] text-slate-400">Carbon</div>
+                                        </div>
+                                    </div>
+                                    <div class="mt-3 flex items-center gap-2 text-[10px] text-slate-500 bg-green-50 p-1.5 rounded border border-green-100">
+                                        <i class="fas fa-arrow-up text-green-600"></i> Cost +15%
+                                    </div>
                                 </div>
                             </div>
-                            <table class="w-full text-sm text-left">
-                                <thead class="bg-slate-50 text-xs uppercase border-y"><tr><th>Item</th><th>Region</th><th class="text-right">Weight</th><th class="text-right">Impact</th><th></th></tr></thead>
-                                <tbody id="upstream-list"></tbody>
-                            </table>
                         </div>
+
+                        <div class="grid grid-cols-2 gap-6">
+                            <div>
+                                <h3 class="text-sm font-bold text-slate-800 mb-3 flex items-center gap-2">
+                                    <span class="bg-slate-800 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs">2</span>
+                                    Logistics Mode
+                                </h3>
+                                <div class="bg-slate-50 p-1 rounded-xl flex border border-slate-200">
+                                    <button id="btn-air" class="flex-1 py-2 rounded-lg text-xs font-bold text-slate-600 transition hover:bg-white" onclick="setLogis('air')">
+                                        <i class="fas fa-plane mr-1"></i> Air (Fast)
+                                    </button>
+                                    <button id="btn-ship" class="flex-1 py-2 rounded-lg text-xs font-bold bg-white text-indigo-600 shadow-sm transition" onclick="setLogis('ship')">
+                                        <i class="fas fa-ship mr-1"></i> Sea (Eco)
+                                    </button>
+                                </div>
+                            </div>
+                            <div>
+                                <h3 class="text-sm font-bold text-slate-800 mb-3 flex items-center gap-2">
+                                    <span class="bg-slate-800 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs">3</span>
+                                    Energy Mix
+                                </h3>
+                                <div class="relative pt-1">
+                                    <input type="range" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer" min="0" max="100" value="0" id="energy-slider" oninput="updateEnergy()">
+                                    <div class="flex justify-between text-[10px] text-slate-500 mt-1 font-medium">
+                                        <span>Coal</span>
+                                        <span id="energy-label" class="text-indigo-600">0% Solar</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
-                    <div class="col-span-4">
-                        <div class="card bg-slate-900 text-white">
-                            <h4 class="text-xs text-slate-400">Result Preview</h4>
-                            <div class="text-3xl font-bold mt-2"><span id="res-total">0.00</span> kg</div>
+
+                    <div class="col-span-5 space-y-6">
+                        
+                        <div class="card bg-slate-900 text-white p-6 relative overflow-hidden group">
+                            <div class="absolute right-0 top-0 opacity-10 transform translate-x-4 -translate-y-4 group-hover:scale-110 transition duration-700">
+                                <i class="fas fa-leaf text-9xl"></i>
+                            </div>
+                            <div class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-2">Total Footprint</div>
+                            <div class="flex items-end gap-3">
+                                <span id="res-total" class="text-5xl font-bold tracking-tight">15.5</span>
+                                <span class="text-lg text-slate-400 mb-1">kgCO₂e</span>
+                            </div>
+                            <div class="mt-4 pt-4 border-t border-slate-700 flex justify-between items-center">
+                                <div class="text-xs text-slate-400">vs Industry Avg (18.0)</div>
+                                <div id="res-diff" class="text-sm font-bold text-green-400">-14% Better</div>
+                            </div>
                         </div>
+
+                        <div class="card h-[280px] flex flex-col">
+                            <h3 class="text-xs font-bold text-slate-500 uppercase mb-4">Impact Breakdown</h3>
+                            <div class="flex-1 relative chart-wrap">
+                                <canvas id="simChart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="card p-0 h-[200px] relative overflow-hidden flex flex-col">
+                            <div class="absolute top-3 left-3 z-[999] bg-white/90 px-2 py-1 rounded shadow text-[10px] font-bold text-slate-700">
+                                <i class="fas fa-sync-alt animate-spin mr-1 text-indigo-500" id="map-status"></i> Live Origin
+                            </div>
+                            <div id="map-container"></div>
+                        </div>
+
                     </div>
                 </div>
             </section>
 
-            <section id="tab-report" class="hidden">
-                <div class="card max-w-4xl mx-auto min-h-[600px] p-12">
-                    <h1 class="text-3xl font-bold border-b pb-4">Certification Report</h1>
-                    <div class="mt-8 text-center bg-slate-50 p-8 rounded">
-                        <div class="text-4xl font-bold"><span id="rpt-val">0.00</span> kgCO2e</div>
-                    </div>
-                </div>
-            </section>
+            <section id="tab-dash" class="hidden"><div class="card py-20 text-center text-slate-400">Full Dashboard Module</div></section>
+            <section id="tab-report" class="hidden"><div class="card py-20 text-center text-slate-400">Reporting Module</div></section>
+            <section id="tab-supply" class="hidden"><div class="card py-20 text-center text-slate-400">Full Supply Chain Map</div></section>
 
         </main>
     </div>
 
     <script>
-        // --- 1. GLOBAL VARIABLES ---
-        let MAP_INSTANCE = null;
-        let CHART_INSTANCE = null;
-        let UPSTREAM_ITEMS = [
-            { name: 'Poly Fabric', region: 'CN', w: 0.3, impact: 0.45 },
-            { name: 'Dyeing Process', region: 'VN', w: 0, impact: 0.675 }
-        ];
-
-        // --- 2. INITIALIZATION (On Load) ---
-        window.onload = function() {
-            console.log("System Init...");
-            
-            // 1. Init Chart
-            initChart();
-            
-            // 2. Init Map (Wait 100ms to ensure container exists)
-            setTimeout(initMap, 100);
-            
-            // 3. Initial Calc
-            runCalc();
+        // --- 1. DATA & CONFIG ---
+        const DATA = {
+            mat: {
+                virgin: { val: 8.5, loc: [30.2741, 120.1551], name: 'Zhejiang, CN' }, // China
+                recycled: { val: 5.5, loc: [21.0285, 105.8542], name: 'Hanoi, VN' }   // Vietnam
+            },
+            logis: { air: 3.5, ship: 0.3 },
+            mfg: 3.0,
+            eol: 0.5,
+            avg: 18.0
         };
 
-        // --- 3. CHART LOGIC ---
+        let STATE = { mat: 'virgin', logis: 'air', energy: 0 };
+        let CHART = null;
+        let MAP = null;
+
+        // --- 2. LOGIC: SIMULATION & BENCHMARKING ---
+        function calculate() {
+            // 1. Calc Values
+            const matVal = DATA.mat[STATE.mat].val;
+            const logisVal = DATA.logis[STATE.logis];
+            const mfgVal = DATA.mfg * (1 - (STATE.energy * 0.008)); // Renewables
+            const total = matVal + logisVal + mfgVal + DATA.eol;
+
+            // 2. Update UI Numbers
+            animateValue("res-total", parseFloat(document.getElementById("res-total").innerText), total, 500);
+            document.getElementById("mini-score").innerText = total.toFixed(1);
+
+            // 3. Benchmarking & Grading
+            const diff = ((total - DATA.avg) / DATA.avg) * 100;
+            const diffEl = document.getElementById("res-diff");
+            const gradeEl = document.getElementById("main-grade");
+            
+            if (diff < -20) { 
+                diffEl.innerText = `${Math.abs(diff).toFixed(0)}% Better`; diffEl.className = "text-sm font-bold text-green-400";
+                gradeEl.className = "grade-badge grade-A"; gradeEl.innerText = "A";
+            } else if (diff < 0) {
+                diffEl.innerText = `${Math.abs(diff).toFixed(0)}% Better`; diffEl.className = "text-sm font-bold text-green-300";
+                gradeEl.className = "grade-badge grade-B"; gradeEl.innerText = "B";
+            } else {
+                diffEl.innerText = `${diff.toFixed(0)}% Worse`; diffEl.className = "text-sm font-bold text-red-400";
+                gradeEl.className = "grade-badge grade-C"; gradeEl.innerText = "C";
+            }
+
+            // Update Mini Bar
+            const barWidth = Math.min(100, (total / 25) * 100);
+            document.getElementById("mini-bar").style.width = barWidth + "%";
+
+            // 4. Update Visuals
+            updateChart([matVal, mfgVal, logisVal, DATA.eol]);
+            
+            // Map Fly-to (Geo-Sync)
+            if(MAP) {
+                const target = DATA.mat[STATE.mat].loc;
+                MAP.flyTo(target, 5, { duration: 1.5 });
+                document.getElementById('map-status').style.display = 'inline-block';
+                setTimeout(() => document.getElementById('map-status').style.display = 'none', 1500);
+            }
+        }
+
+        function animateValue(id, start, end, duration) {
+            let obj = document.getElementById(id);
+            let range = end - start;
+            let current = start;
+            let increment = end > start ? 0.1 : -0.1;
+            let stepTime = Math.abs(Math.floor(duration / (range / increment)));
+            let timer = setInterval(function() {
+                current += increment;
+                obj.innerHTML = current.toFixed(1);
+                if ((increment > 0 && current >= end) || (increment < 0 && current <= end)) {
+                    clearInterval(timer);
+                    obj.innerHTML = end.toFixed(1);
+                }
+            }, stepTime);
+        }
+
+        // --- 3. INTERACTIONS ---
+        function selectMat(type) {
+            STATE.mat = type;
+            document.querySelectorAll('.select-card').forEach(el => el.classList.remove('selected'));
+            document.getElementById('mat-' + type).classList.add('selected');
+            calculate();
+        }
+
+        function setLogis(mode) {
+            STATE.logis = mode;
+            const bAir = document.getElementById('btn-air');
+            const bShip = document.getElementById('btn-ship');
+            
+            if(mode === 'air') {
+                bAir.className = "flex-1 py-2 rounded-lg text-xs font-bold bg-white text-indigo-600 shadow-sm transition";
+                bShip.className = "flex-1 py-2 rounded-lg text-xs font-bold text-slate-600 transition hover:bg-white";
+            } else {
+                bShip.className = "flex-1 py-2 rounded-lg text-xs font-bold bg-white text-indigo-600 shadow-sm transition";
+                bAir.className = "flex-1 py-2 rounded-lg text-xs font-bold text-slate-600 transition hover:bg-white";
+            }
+            calculate();
+        }
+
+        function updateEnergy() {
+            const val = document.getElementById('energy-slider').value;
+            STATE.energy = val;
+            document.getElementById('energy-label').innerText = val + "% Solar";
+            calculate();
+        }
+
+        // --- 4. INIT VISUALS ---
         function initChart() {
-            const ctx = document.getElementById('dashChart').getContext('2d');
-            CHART_INSTANCE = new Chart(ctx, {
-                type: 'doughnut',
+            const ctx = document.getElementById('simChart').getContext('2d');
+            CHART = new Chart(ctx, {
+                type: 'bar',
                 data: {
-                    labels: ['Upstream', 'Logistics', 'Use', 'EOL'],
+                    labels: ['Material', 'Mfg', 'Logistics', 'EOL'],
                     datasets: [{
-                        data: [1, 1, 1, 1], // Placeholder
-                        backgroundColor: ['#4f46e5', '#f97316', '#22c55e', '#64748b'],
-                        borderWidth: 0
+                        label: 'Impact (kg)',
+                        data: [0,0,0,0],
+                        backgroundColor: ['#4f46e5', '#f97316', '#06b6d4', '#64748b'],
+                        borderRadius: 6,
+                        barThickness: 30
                     }]
                 },
-                options: { 
-                    responsive: true, 
-                    maintainAspectRatio: false, // 중요: 컨테이너 크기에 맞춤
-                    cutout: '70%',
-                    plugins: { legend: { position: 'bottom' } }
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { 
+                        y: { beginAtZero: true, grid: { color: '#f1f5f9' } },
+                        x: { grid: { display: false } }
+                    }
                 }
             });
         }
 
-        // --- 4. MAP LOGIC ---
         function initMap() {
-            // 이미 맵이 있으면 삭제 (재초기화 방지)
-            if (MAP_INSTANCE) { MAP_INSTANCE.remove(); }
+            MAP = L.map('map-container', { zoomControl: false }).setView([30, 110], 4);
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; OpenStreetMap &copy; CARTO',
+                subdomains: 'abcd',
+                maxZoom: 19
+            }).addTo(MAP);
 
-            // Create Map
-            MAP_INSTANCE = L.map('map-container').setView([20, 105], 3); // Asia Focus
-
-            // Add Tile Layer (OpenStreetMap)
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; OpenStreetMap',
-                maxZoom: 18
-            }).addTo(MAP_INSTANCE);
-
-            // Add Default Markers
-            addMapMarker(37.5665, 126.9780, 'red', 'Seoul (HQ)');
-            addMapMarker(21.0285, 105.8542, 'orange', 'Vietnam (Mfg)');
-            addMapMarker(31.2304, 121.4737, 'blue', 'China (Mat)');
-            
-            console.log("Map Initialized.");
+            // Add Markers
+            L.circleMarker([30.2741, 120.1551], { color: '#ef4444', radius: 6 }).addTo(MAP).bindPopup("China (Virgin)");
+            L.circleMarker([21.0285, 105.8542], { color: '#10b981', radius: 6 }).addTo(MAP).bindPopup("Vietnam (Recycled)");
         }
 
-        function addMapMarker(lat, lng, color, title) {
-            const colors = { red: '#ef4444', orange: '#f97316', blue: '#3b82f6', purple: '#8b5cf6' };
-            L.circleMarker([lat, lng], {
-                color: 'white',
-                fillColor: colors[color] || '#333',
-                fillOpacity: 1,
-                radius: 8,
-                weight: 2
-            }).addTo(MAP_INSTANCE).bindPopup(`<b>${title}</b>`);
-        }
-
-        // --- 5. CALCULATION LOGIC ---
-        function runCalc() {
-            let upTotal = 0;
-            UPSTREAM_ITEMS.forEach(i => upTotal += i.impact);
-            
-            // Simplified Downstream for Demo
-            const dist = upTotal * 0.2;
-            const use = upTotal * 0.4;
-            const eol = upTotal * 0.1;
-            const total = upTotal + dist + use + eol;
-
-            // Text Update
-            document.getElementById('dash-total').innerText = total.toFixed(2);
-            document.getElementById('res-total').innerText = total.toFixed(2);
-            document.getElementById('rpt-val').innerText = total.toFixed(2);
-
-            // Chart Update
-            if(CHART_INSTANCE) {
-                CHART_INSTANCE.data.datasets[0].data = [upTotal, dist, use, eol];
-                CHART_INSTANCE.update();
-            }
-
-            renderTable();
-        }
-
-        function renderTable() {
-            const tbody = document.getElementById('upstream-list');
-            tbody.innerHTML = '';
-            UPSTREAM_ITEMS.forEach((i, idx) => {
-                tbody.innerHTML += `
-                    <tr class="border-b border-slate-100">
-                        <td class="p-2">${i.name}</td>
-                        <td class="p-2"><span class="bg-slate-100 px-1 rounded text-xs">${i.region}</span></td>
-                        <td class="p-2 text-right">${i.w > 0 ? i.w : '-'}</td>
-                        <td class="p-2 text-right font-bold">${i.impact.toFixed(2)}</td>
-                        <td class="p-2 text-center text-xs cursor-pointer hover:text-red-500" onclick="delItem(${idx})"><i class="fas fa-trash"></i></td>
-                    </tr>`;
-            });
-        }
-
-        function delItem(idx) {
-            UPSTREAM_ITEMS.splice(idx, 1);
-            runCalc();
-        }
-
-        // --- 6. OCR SIMULATION ---
-        document.getElementById('btn-ocr').addEventListener('click', () => {
-            const btn = document.getElementById('btn-ocr');
-            btn.classList.add('scanning');
-            setTimeout(() => {
-                btn.classList.remove('scanning');
-                // Add India Data
-                UPSTREAM_ITEMS.push({ name: 'Scanned: Cotton', region: 'IN', w: 0.5, impact: 0.6 });
-                addMapMarker(19.0760, 72.8777, 'purple', 'Mumbai (New)');
-                runCalc();
-                alert("OCR Complete: India Data Added to Map & Calc");
-            }, 1000);
-        });
-
-        // --- 7. TAB NAVIGATION ---
         function setTab(id) {
-            // Hide all sections
             document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
             document.getElementById('tab-' + id).classList.remove('hidden');
-            
-            // Active Menu Style
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             document.getElementById('nav-' + id).classList.add('active');
-
-            // ★★★ CRITICAL FIX: MAP REFRESH ★★★
-            // 지도가 숨겨졌다가 나올 때 크기를 재계산해야 깨지지 않음
-            if (id === 'dash' && MAP_INSTANCE) {
-                setTimeout(() => { 
-                    MAP_INSTANCE.invalidateSize(); 
-                }, 200); // 0.2초 뒤 강제 새로고침
-            }
+            if (id === 'studio' && MAP) setTimeout(() => MAP.invalidateSize(), 100);
         }
+
+        window.onload = function() {
+            initChart();
+            calculate();
+            setTimeout(initMap, 200);
+        };
     </script>
 </body>
 </html>
