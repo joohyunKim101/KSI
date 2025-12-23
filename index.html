@@ -3,34 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KSIKR - Integrated Official Platform (v1100)</title>
+    <title>KSIKR - Visual Fixed (v1200)</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700&display=swap');
         body { font-family: 'Pretendard', sans-serif; background-color: #f1f5f9; }
 
-        /* Menu Styles */
-        .nav-item { display: flex; align-items: center; padding: 12px 16px; border-radius: 8px; color: #64748b; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; margin-bottom: 4px; }
-        .nav-item:hover { background-color: #f8fafc; color: #334155; }
-        .nav-item.active { background-color: #e0e7ff; color: #4338ca; font-weight: 700; }
-        .nav-item i { width: 24px; text-align: center; margin-right: 8px; }
-
-        /* Card & Inputs */
+        /* UI Components */
+        .nav-item { padding: 12px; border-radius: 8px; color: #64748b; font-size: 14px; font-weight: 500; cursor: pointer; display: flex; align-items: center; transition: 0.2s; }
+        .nav-item:hover { background: #f8fafc; color: #1e293b; }
+        .nav-item.active { background: #e0e7ff; color: #4338ca; font-weight: 700; }
+        
         .card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-        .input-std { width: 100%; border: 1px solid #cbd5e1; border-radius: 6px; padding: 6px 10px; font-size: 13px; text-align: right; }
-        .input-std:focus { outline: none; border-color: #4f46e5; ring: 2px solid #e0e7ff; }
+        
+        /* Map Fix: 높이 강제 지정 */
+        #map-container { height: 100%; width: 100%; min-height: 350px; z-index: 1; border-radius: 8px; }
+        
+        /* Chart Fix */
+        .chart-container { position: relative; height: 350px; width: 100%; }
 
-        /* Map Container */
-        #map-container { height: 100%; width: 100%; border-radius: 8px; z-index: 1; }
-
-        /* Visuals */
-        .scanner-line { position: absolute; width: 100%; height: 2px; background: #3b82f6; box-shadow: 0 0 10px #3b82f6; animation: scan 2s linear infinite; display: none; }
+        /* Animations */
+        .scanner-line { position: absolute; width: 100%; height: 2px; background: #3b82f6; top: 0; animation: scan 1.5s infinite; display: none; }
         @keyframes scan { 0% { top: 0%; } 100% { top: 100%; } }
         .scanning .scanner-line { display: block; }
     </style>
@@ -40,40 +41,20 @@
     <header class="h-14 bg-slate-900 text-white flex items-center justify-between px-6 shrink-0 z-50">
         <div class="flex items-center gap-4">
             <div class="w-8 h-8 bg-indigo-600 rounded flex items-center justify-center font-bold text-lg">K</div>
-            <div>
-                <h1 class="font-bold text-base tracking-tight">KSIKR <span class="text-slate-400 font-normal">Platform</span></h1>
-                <p class="text-[10px] text-slate-400">ISO 14067 & PEFCR Compliant</p>
-            </div>
+            <h1 class="font-bold text-base">KSIKR <span class="text-slate-400 font-normal">v1200 (Visual Fixed)</span></h1>
         </div>
-        <div class="flex items-center gap-4 text-xs">
-             <div class="flex items-center gap-2">
-                <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
-                <span>Real-time Sync</span>
-            </div>
-            <div class="px-3 py-1 bg-slate-800 rounded border border-slate-700">
-                User: <span class="font-bold">CEO Kim</span>
-            </div>
+        <div class="text-xs bg-slate-800 px-3 py-1 rounded border border-slate-700">
+            <i class="fas fa-satellite text-green-400 mr-2"></i>Map & Chart Online
         </div>
     </header>
 
     <div class="flex flex-1 overflow-hidden">
-        
         <aside class="w-64 bg-white border-r border-slate-200 flex flex-col p-4 z-40">
-            <nav class="flex-1">
-                <div class="text-xs font-bold text-slate-400 uppercase mb-2 px-2">Main Module</div>
-                <div class="nav-item active" onclick="setTab('dash')" id="nav-dash"><i class="fas fa-chart-pie"></i> 대시보드 (Dashboard)</div>
-                <div class="nav-item" onclick="setTab('lca')" id="nav-lca"><i class="fas fa-calculator"></i> 정밀 전과정평가 (LCA)</div>
-                <div class="nav-item" onclick="setTab('report')" id="nav-report"><i class="fas fa-file-certificate"></i> 인증 리포트 (Report)</div>
-                
-                <div class="text-xs font-bold text-slate-400 uppercase mt-6 mb-2 px-2">Data & Management</div>
-                <div class="nav-item" onclick="setTab('supply')" id="nav-supply"><i class="fas fa-network-wired"></i> 공급망 데이터 (SCM)</div>
-                <div class="nav-item" onclick="setTab('history')" id="nav-history"><i class="fas fa-history"></i> 산정 이력 (History)</div>
-                <div class="nav-item" onclick="setTab('company')" id="nav-company"><i class="fas fa-building"></i> 기업 정보 (Company)</div>
+            <nav class="space-y-1">
+                <div class="nav-item active" onclick="setTab('dash')" id="nav-dash"><i class="fas fa-chart-pie w-5 mr-2"></i> 대시보드</div>
+                <div class="nav-item" onclick="setTab('lca')" id="nav-lca"><i class="fas fa-calculator w-5 mr-2"></i> 정밀 전과정평가</div>
+                <div class="nav-item" onclick="setTab('report')" id="nav-report"><i class="fas fa-file-contract w-5 mr-2"></i> 인증 리포트</div>
             </nav>
-            <div class="bg-indigo-50 p-4 rounded-xl border border-indigo-100">
-                <div class="text-xs text-indigo-800 font-bold mb-1">Pan-Asian DB</div>
-                <div class="text-[10px] text-indigo-600">KR, CN, VN, IN, ID, BD<br>Grid Mix Applied.</div>
-            </div>
         </aside>
 
         <main class="flex-1 overflow-y-auto bg-slate-50 p-8 relative">
@@ -83,23 +64,27 @@
                 
                 <div class="grid grid-cols-4 gap-4">
                     <div class="card bg-slate-900 text-white border-0">
-                        <div class="text-xs text-slate-400">Avg Carbon Footprint</div>
-                        <div class="text-3xl font-bold mt-1"><span id="dash-total">0.00</span> <span class="text-sm font-normal">kgCO2e</span></div>
+                        <div class="text-xs text-slate-400">Total GWP</div>
+                        <div class="text-3xl font-bold mt-1"><span id="dash-total">0.00</span> <span class="text-sm">kgCO2e</span></div>
                     </div>
-                    <div class="card"><div class="text-xs text-slate-500">Active Projects</div><div class="text-3xl font-bold mt-1">4</div></div>
-                    <div class="card"><div class="text-xs text-slate-500">Data Confidence</div><div class="text-3xl font-bold mt-1 text-green-600">High (A)</div></div>
+                    <div class="card"><div class="text-xs text-slate-500">Nodes</div><div class="text-xl font-bold mt-2">4 Active</div></div>
+                    <div class="card"><div class="text-xs text-slate-500">DCI Score</div><div class="text-xl font-bold mt-2 text-green-600">A (High)</div></div>
                     <div class="card"><div class="text-xs text-slate-500">Hotspot</div><div class="text-xl font-bold mt-2 text-red-500">Vietnam</div></div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-6 h-96">
-                    <div class="card flex flex-col">
-                        <h3 class="font-bold text-sm mb-4">Stage Breakdown (Live)</h3>
-                        <div class="flex-1 relative">
+                <div class="grid grid-cols-2 gap-6">
+                    
+                    <div class="card flex flex-col h-[450px]"> 
+                        <h3 class="font-bold text-sm mb-4">Stage Breakdown (Chart.js)</h3>
+                        <div class="chart-container">
                             <canvas id="dashChart"></canvas>
                         </div>
                     </div>
-                    <div class="card relative flex flex-col p-0 overflow-hidden">
-                        <div class="absolute top-4 left-4 z-[999] bg-white/90 px-3 py-1 rounded shadow text-xs font-bold text-slate-700">Live Supply Chain</div>
+                    
+                    <div class="card flex flex-col h-[450px] p-0 overflow-hidden relative">
+                        <div class="absolute top-4 left-4 z-[999] bg-white/90 px-3 py-1 rounded shadow text-xs font-bold">
+                            Live Supply Chain (Leaflet)
+                        </div>
                         <div id="map-container"></div>
                     </div>
                 </div>
@@ -107,147 +92,161 @@
 
             <section id="tab-lca" class="hidden max-w-6xl mx-auto space-y-6">
                 <div class="flex justify-between items-center">
-                    <h2 class="text-xl font-bold text-slate-900">정밀 전과정평가 (Detailed LCA)</h2>
-                    <div class="flex gap-2">
-                        <span class="bg-white border px-3 py-1 rounded text-xs font-bold text-slate-600">Method: ISO 14067</span>
-                        <button onclick="runCalc()" class="bg-indigo-600 text-white px-4 py-1 rounded text-sm font-bold shadow hover:bg-indigo-700">Calculate All</button>
-                    </div>
+                    <h2 class="text-xl font-bold">정밀 LCA 평가</h2>
+                    <button onclick="runCalc()" class="bg-indigo-600 text-white px-4 py-2 rounded font-bold text-sm hover:bg-indigo-700">Calculate & Sync</button>
                 </div>
 
                 <div class="grid grid-cols-12 gap-6">
                     <div class="col-span-8 space-y-6">
                         <div class="card relative">
                             <div class="flex justify-between mb-4">
-                                <h3 class="font-bold text-sm flex items-center gap-2"><i class="fas fa-industry text-slate-400"></i> Upstream (제조/자재)</h3>
-                                <div id="btn-ocr" class="cursor-pointer text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded font-bold border border-blue-200 hover:bg-blue-100">
-                                    <i class="fas fa-camera mr-1"></i> Scan Invoice (OCR)
+                                <h3 class="font-bold text-sm">Upstream Input</h3>
+                                <div id="btn-ocr" class="cursor-pointer text-xs bg-blue-50 text-blue-600 px-3 py-1 rounded font-bold border border-blue-200">
+                                    <i class="fas fa-camera mr-1"></i> AI OCR Scan
                                     <div class="scanner-line" id="ocr-scan-line"></div>
                                 </div>
                             </div>
                             <table class="w-full text-sm text-left">
-                                <thead class="bg-slate-50 text-xs uppercase text-slate-500">
-                                    <tr><th>Item</th><th>Origin</th><th class="text-right">Weight(kg)</th><th class="text-right">Impact</th><th class="text-center">Del</th></tr>
-                                </thead>
-                                <tbody id="lca-upstream-list"></tbody>
+                                <thead class="bg-slate-50 text-xs uppercase border-y"><tr><th>Item</th><th>Region</th><th class="text-right">Weight</th><th class="text-right">Impact</th><th></th></tr></thead>
+                                <tbody id="upstream-list"></tbody>
                             </table>
                         </div>
-
-                        <div class="grid grid-cols-3 gap-4">
-                            <div class="card">
-                                <h3 class="text-xs font-bold text-slate-500 mb-2">Distribution</h3>
-                                <select class="input-std mb-2" id="dist-mode" onchange="runCalc()"><option value="ship">Ocean</option><option value="air">Air</option></select>
-                                <input type="number" id="dist-km" value="11000" class="input-std" oninput="runCalc()">
-                            </div>
-                            <div class="card">
-                                <h3 class="text-xs font-bold text-slate-500 mb-2">Use Phase (Temp)</h3>
-                                <select class="input-std" id="use-temp" onchange="runCalc()"><option value="30">30°C</option><option value="40">40°C</option><option value="60">60°C</option></select>
-                            </div>
-                            <div class="card">
-                                <h3 class="text-xs font-bold text-slate-500 mb-2">EOL (Incinerate%)</h3>
-                                <input type="number" id="eol-inc" value="30" class="input-std" oninput="runCalc()">
-                            </div>
-                        </div>
                     </div>
-
                     <div class="col-span-4">
-                        <div class="card sticky top-6 bg-slate-900 text-white border-0">
-                            <h4 class="text-xs font-bold text-slate-400 uppercase mb-4">Total Impact</h4>
-                            <div class="flex items-end gap-2 mb-6">
-                                <span id="res-total" class="text-5xl font-black text-slate-900">0.00</span>
-                                <span class="text-sm font-medium text-slate-500 mb-2">kgCO₂e</span>
-                            </div>
-                            <div class="space-y-3 text-sm border-t border-slate-700 pt-4">
-                                <div class="flex justify-between"><span>Upstream</span><span id="res-up">0.00</span></div>
-                                <div class="flex justify-between"><span>Distribution</span><span id="res-dist">0.00</span></div>
-                                <div class="flex justify-between"><span>Use Phase</span><span id="res-use">0.00</span></div>
-                                <div class="flex justify-between"><span>End of Life</span><span id="res-eol">0.00</span></div>
-                            </div>
+                        <div class="card bg-slate-900 text-white">
+                            <h4 class="text-xs text-slate-400">Result Preview</h4>
+                            <div class="text-3xl font-bold mt-2"><span id="res-total">0.00</span> kg</div>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <section id="tab-report" class="hidden max-w-4xl mx-auto">
-                <div class="bg-white p-16 shadow-2xl min-h-[800px]">
-                    <div class="flex justify-between items-end border-b-2 border-black pb-4 mb-8">
-                        <h1 class="text-3xl font-bold">LCA Verification Report</h1>
-                        <div class="text-right text-xs">
-                            <div>Standard: <span class="font-bold">ISO 14067</span></div>
-                            <div>Date: <span id="rpt-date">2025-12-23</span></div>
-                        </div>
-                    </div>
-                    <div class="space-y-6">
-                        <div class="bg-slate-50 p-6 text-center rounded border">
-                            <div class="text-sm text-slate-500">Total GWP</div>
-                            <div class="text-4xl font-bold mt-2"><span id="rpt-val">0.00</span> kgCO2e</div>
-                        </div>
-                        <p class="text-sm text-slate-600">This report certifies compliance with ISO 14040/14044/14067 standards.</p>
+            <section id="tab-report" class="hidden">
+                <div class="card max-w-4xl mx-auto min-h-[600px] p-12">
+                    <h1 class="text-3xl font-bold border-b pb-4">Certification Report</h1>
+                    <div class="mt-8 text-center bg-slate-50 p-8 rounded">
+                        <div class="text-4xl font-bold"><span id="rpt-val">0.00</span> kgCO2e</div>
                     </div>
                 </div>
             </section>
-
-            <section id="tab-supply" class="hidden"><div class="card h-96 flex items-center justify-center text-slate-400">SCM Module</div></section>
-            <section id="tab-history" class="hidden"><div class="card h-96 flex items-center justify-center text-slate-400">History Module</div></section>
-            <section id="tab-company" class="hidden"><div class="card h-96 flex items-center justify-center text-slate-400">Company Info</div></section>
 
         </main>
     </div>
 
     <script>
-        // --- 1. DATA STATE ---
-        let UPSTREAM_ITEMS = [
-            { name: 'Poly Fabric', region: 'CN', w: 0.3, e: 0, ef: 1.5, impact: 0.45 },
-            { name: 'Dyeing Process', region: 'VN', w: 0, e: 1.5, ef: 0.45, impact: 0.675 }
-        ];
-        
-        let CHART_INSTANCE = null;
+        // --- 1. GLOBAL VARIABLES ---
         let MAP_INSTANCE = null;
+        let CHART_INSTANCE = null;
+        let UPSTREAM_ITEMS = [
+            { name: 'Poly Fabric', region: 'CN', w: 0.3, impact: 0.45 },
+            { name: 'Dyeing Process', region: 'VN', w: 0, impact: 0.675 }
+        ];
 
-        // --- 2. LOGIC (OFFICIAL FORMULAS) ---
-        function runCalc() {
-            // A. Upstream
-            let upTotal = 0; let totalWeight = 0;
-            UPSTREAM_ITEMS.forEach(i => { upTotal += i.impact; if(i.w>0) totalWeight += i.w; });
-
-            // B. Downstream
-            const dKm = parseFloat(document.getElementById('dist-km').value) || 0;
-            const dMode = document.getElementById('dist-mode').value;
-            const distImpact = (totalWeight/1000) * dKm * (dMode==='ship'?0.008:0.602);
-
-            const uCycle = 50; 
-            const uTemp = document.getElementById('use-temp').value;
-            const useImpact = uCycle * (uTemp==='30'?0.3:0.6) * 0.478;
-
-            const eInc = parseFloat(document.getElementById('eol-inc').value)/100 || 0;
-            const eolImpact = totalWeight * (eInc*1.2 + (1-eInc)*0.1);
-
-            const total = upTotal + distImpact + useImpact + eolImpact;
-
-            // UI Updates
-            document.getElementById('res-total').innerText = total.toFixed(2);
-            document.getElementById('dash-total').innerText = total.toFixed(2);
-            document.getElementById('rpt-val').innerText = total.toFixed(2);
+        // --- 2. INITIALIZATION (On Load) ---
+        window.onload = function() {
+            console.log("System Init...");
             
-            document.getElementById('res-up').innerText = upTotal.toFixed(2);
-            document.getElementById('res-dist').innerText = distImpact.toFixed(2);
-            document.getElementById('res-use').innerText = useImpact.toFixed(2);
-            document.getElementById('res-eol').innerText = eolImpact.toFixed(2);
+            // 1. Init Chart
+            initChart();
+            
+            // 2. Init Map (Wait 100ms to ensure container exists)
+            setTimeout(initMap, 100);
+            
+            // 3. Initial Calc
+            runCalc();
+        };
 
-            renderList();
-            updateChart([upTotal, distImpact, useImpact, eolImpact]);
+        // --- 3. CHART LOGIC ---
+        function initChart() {
+            const ctx = document.getElementById('dashChart').getContext('2d');
+            CHART_INSTANCE = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Upstream', 'Logistics', 'Use', 'EOL'],
+                    datasets: [{
+                        data: [1, 1, 1, 1], // Placeholder
+                        backgroundColor: ['#4f46e5', '#f97316', '#22c55e', '#64748b'],
+                        borderWidth: 0
+                    }]
+                },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false, // 중요: 컨테이너 크기에 맞춤
+                    cutout: '70%',
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
         }
 
-        function renderList() {
-            const tbody = document.getElementById('lca-upstream-list');
+        // --- 4. MAP LOGIC ---
+        function initMap() {
+            // 이미 맵이 있으면 삭제 (재초기화 방지)
+            if (MAP_INSTANCE) { MAP_INSTANCE.remove(); }
+
+            // Create Map
+            MAP_INSTANCE = L.map('map-container').setView([20, 105], 3); // Asia Focus
+
+            // Add Tile Layer (OpenStreetMap)
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap',
+                maxZoom: 18
+            }).addTo(MAP_INSTANCE);
+
+            // Add Default Markers
+            addMapMarker(37.5665, 126.9780, 'red', 'Seoul (HQ)');
+            addMapMarker(21.0285, 105.8542, 'orange', 'Vietnam (Mfg)');
+            addMapMarker(31.2304, 121.4737, 'blue', 'China (Mat)');
+            
+            console.log("Map Initialized.");
+        }
+
+        function addMapMarker(lat, lng, color, title) {
+            const colors = { red: '#ef4444', orange: '#f97316', blue: '#3b82f6', purple: '#8b5cf6' };
+            L.circleMarker([lat, lng], {
+                color: 'white',
+                fillColor: colors[color] || '#333',
+                fillOpacity: 1,
+                radius: 8,
+                weight: 2
+            }).addTo(MAP_INSTANCE).bindPopup(`<b>${title}</b>`);
+        }
+
+        // --- 5. CALCULATION LOGIC ---
+        function runCalc() {
+            let upTotal = 0;
+            UPSTREAM_ITEMS.forEach(i => upTotal += i.impact);
+            
+            // Simplified Downstream for Demo
+            const dist = upTotal * 0.2;
+            const use = upTotal * 0.4;
+            const eol = upTotal * 0.1;
+            const total = upTotal + dist + use + eol;
+
+            // Text Update
+            document.getElementById('dash-total').innerText = total.toFixed(2);
+            document.getElementById('res-total').innerText = total.toFixed(2);
+            document.getElementById('rpt-val').innerText = total.toFixed(2);
+
+            // Chart Update
+            if(CHART_INSTANCE) {
+                CHART_INSTANCE.data.datasets[0].data = [upTotal, dist, use, eol];
+                CHART_INSTANCE.update();
+            }
+
+            renderTable();
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('upstream-list');
             tbody.innerHTML = '';
             UPSTREAM_ITEMS.forEach((i, idx) => {
                 tbody.innerHTML += `
                     <tr class="border-b border-slate-100">
-                        <td class="p-2 font-medium">${i.name}</td>
-                        <td class="p-2 text-xs"><span class="bg-slate-100 px-1 rounded">${i.region}</span></td>
-                        <td class="p-2 text-right text-xs">${i.w>0?i.w:'-'}</td>
-                        <td class="p-2 text-right font-bold text-xs">${i.impact.toFixed(2)}</td>
-                        <td class="p-2 text-center"><button onclick="delItem(${idx})" class="text-slate-400 hover:text-red-500"><i class="fas fa-trash"></i></button></td>
+                        <td class="p-2">${i.name}</td>
+                        <td class="p-2"><span class="bg-slate-100 px-1 rounded text-xs">${i.region}</span></td>
+                        <td class="p-2 text-right">${i.w > 0 ? i.w : '-'}</td>
+                        <td class="p-2 text-right font-bold">${i.impact.toFixed(2)}</td>
+                        <td class="p-2 text-center text-xs cursor-pointer hover:text-red-500" onclick="delItem(${idx})"><i class="fas fa-trash"></i></td>
                     </tr>`;
             });
         }
@@ -257,72 +256,38 @@
             runCalc();
         }
 
-        // --- 3. CHART & MAP ---
-        function initVisuals() {
-            // Chart
-            const ctx = document.getElementById('dashChart').getContext('2d');
-            CHART_INSTANCE = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Upstream', 'Logistics', 'Use', 'EOL'],
-                    datasets: [{ data: [0,0,0,0], backgroundColor: ['#4f46e5', '#f59e0b', '#10b981', '#64748b'], borderWidth: 0 }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, cutout: '75%', plugins: { legend: { position: 'right' } } }
-            });
-
-            // Leaflet Map
-            MAP_INSTANCE = L.map('map-container').setView([20, 105], 3); // Asia Focus
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; OpenStreetMap'
-            }).addTo(MAP_INSTANCE);
-
-            // Add Markers (Seoul, Hanoi, Shanghai)
-            L.circleMarker([37.5665, 126.9780], { color:'red', radius:6 }).addTo(MAP_INSTANCE).bindPopup('Seoul (HQ)');
-            L.circleMarker([21.0285, 105.8542], { color:'orange', radius:6 }).addTo(MAP_INSTANCE).bindPopup('Hanoi (Factory)');
-            L.circleMarker([31.2304, 121.4737], { color:'blue', radius:6 }).addTo(MAP_INSTANCE).bindPopup('Shanghai (Material)');
-        }
-
-        function updateChart(data) {
-            if(CHART_INSTANCE) {
-                CHART_INSTANCE.data.datasets[0].data = data;
-                CHART_INSTANCE.update();
-            }
-        }
-
-        // --- 4. TABS & EVENTS ---
-        function setTab(id) {
-            document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
-            document.getElementById('tab-' + id).classList.remove('hidden');
-            
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            document.getElementById('nav-' + id).classList.add('active');
-
-            // Fix Chart/Map rendering when hidden
-            if(id === 'dash') {
-                setTimeout(() => { MAP_INSTANCE.invalidateSize(); }, 100);
-            }
-        }
-
-        // OCR
+        // --- 6. OCR SIMULATION ---
         document.getElementById('btn-ocr').addEventListener('click', () => {
-            document.getElementById('btn-ocr').classList.add('scanning');
+            const btn = document.getElementById('btn-ocr');
+            btn.classList.add('scanning');
             setTimeout(() => {
-                UPSTREAM_ITEMS.push({ name: 'Scanned: Cotton', region: 'IN', w: 0.5, e:0, ef:1.2, impact: 0.6 });
-                // Add marker dynamically
-                L.circleMarker([19.0760, 72.8777], { color:'purple', radius:6 }).addTo(MAP_INSTANCE).bindPopup('Mumbai (New)');
-                
-                document.getElementById('btn-ocr').classList.remove('scanning');
+                btn.classList.remove('scanning');
+                // Add India Data
+                UPSTREAM_ITEMS.push({ name: 'Scanned: Cotton', region: 'IN', w: 0.5, impact: 0.6 });
+                addMapMarker(19.0760, 72.8777, 'purple', 'Mumbai (New)');
                 runCalc();
-                alert('OCR: 1 Item Added from India');
+                alert("OCR Complete: India Data Added to Map & Calc");
             }, 1000);
         });
 
-        // INIT
-        window.onload = function() {
-            initVisuals();
-            setTab('dash'); // Start on Dashboard
-            runCalc();
-        };
+        // --- 7. TAB NAVIGATION ---
+        function setTab(id) {
+            // Hide all sections
+            document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
+            document.getElementById('tab-' + id).classList.remove('hidden');
+            
+            // Active Menu Style
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById('nav-' + id).classList.add('active');
+
+            // ★★★ CRITICAL FIX: MAP REFRESH ★★★
+            // 지도가 숨겨졌다가 나올 때 크기를 재계산해야 깨지지 않음
+            if (id === 'dash' && MAP_INSTANCE) {
+                setTimeout(() => { 
+                    MAP_INSTANCE.invalidateSize(); 
+                }, 200); // 0.2초 뒤 강제 새로고침
+            }
+        }
     </script>
 </body>
 </html>
