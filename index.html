@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KSIKR - Real Map LCA Platform (v950)</title>
+    <title>KSIKR - Enterprise LCA Solution (v1000)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -13,62 +13,69 @@
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700&display=swap');
-        body { font-family: 'Pretendard', sans-serif; background-color: #f1f5f9; }
+        body { font-family: 'Pretendard', sans-serif; background-color: #f8fafc; }
 
-        /* --- UI COMPONENTS --- */
-        .nav-item { padding: 12px; border-radius: 8px; color: #64748b; font-size: 14px; font-weight: 500; cursor: pointer; display: flex; align-items: center; transition: all 0.2s; }
-        .nav-item:hover { background: #f8fafc; color: #1e293b; }
-        .nav-item.active { background: #e0e7ff; color: #4338ca; font-weight: 700; }
+        /* Navigation & Layout */
+        .nav-item { padding: 12px 16px; border-radius: 8px; color: #64748b; font-size: 14px; font-weight: 500; cursor: pointer; display: flex; align-items: center; transition: all 0.2s; }
+        .nav-item:hover { background: #f1f5f9; color: #0f172a; }
+        .nav-item.active { background: #eff6ff; color: #4f46e5; font-weight: 700; border-left: 4px solid #4f46e5; }
+
+        /* Stepper UI */
+        .step-item { display: flex; flex-direction: column; align-items: center; position: relative; z-index: 10; cursor: pointer; opacity: 0.6; transition: all 0.3s; }
+        .step-item.active { opacity: 1; transform: scale(1.05); }
+        .step-circle { width: 40px; height: 40px; border-radius: 50%; background: white; border: 2px solid #cbd5e1; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; margin-bottom: 8px; transition: all 0.3s; }
+        .step-item.active .step-circle { border-color: #4f46e5; background: #4f46e5; color: white; box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.3); }
+        .step-item.disabled { opacity: 0.3; pointer-events: none; filter: grayscale(100%); }
+        .step-line { position: absolute; top: 20px; left: 0; width: 100%; height: 2px; background: #e2e8f0; z-index: 0; }
+
+        /* Drag & Drop Zone */
+        .drop-zone { border: 2px dashed #cbd5e1; background: #f8fafc; border-radius: 12px; transition: all 0.2s; cursor: pointer; position: relative; overflow: hidden; }
+        .drop-zone:hover { border-color: #4f46e5; background: #eef2ff; }
+        .scanner-line { position: absolute; left:0; width: 100%; height: 2px; background: #3b82f6; box-shadow: 0 0 15px #3b82f6; top: -10%; display: none; }
+        @keyframes scan { 0% { top: 0%; } 100% { top: 100%; } }
+        .scanning .scanner-line { display: block; animation: scan 1.5s linear infinite; }
+
+        /* Map Container */
+        #map { height: 100%; width: 100%; z-index: 1; border-radius: 8px; }
         
-        .card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-        .input-field { width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; text-align: right; }
-        .input-field:focus { border-color: #4f46e5; outline: none; }
-
-        /* --- MAP CUSTOMIZATION --- */
-        #map-container { height: 100%; width: 100%; border-radius: 8px; z-index: 1; }
-        .custom-pin {
-            background-color: #ef4444;
-            border-radius: 50%;
-            border: 2px solid white;
-            box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
-            width: 12px !important; height: 12px !important;
-        }
-        .pin-pulse {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 24px; height: 24px; border-radius: 50%;
-            background: rgba(239, 68, 68, 0.4);
-            animation: pulse-ring 2s infinite;
-        }
-        @keyframes pulse-ring { 0% { transform: translate(-50%, -50%) scale(0.5); opacity: 1; } 100% { transform: translate(-50%, -50%) scale(2.5); opacity: 0; } }
-
-        /* --- SCANNER --- */
-        .drop-zone { border: 2px dashed #cbd5e1; transition: all 0.2s; background: #f8fafc; cursor: pointer; position: relative; overflow: hidden; }
-        .drop-zone:hover, .drop-zone.drag-over { border-color: #4f46e5; background: #eef2ff; }
-        .scanner-line { position: absolute; left:0; width: 100%; height: 2px; background: #3b82f6; box-shadow: 0 0 15px #3b82f6; top: -10%; transition: none; display: none; z-index: 10; }
-        @keyframes scanAnim { 0% { top: 0%; } 100% { top: 100%; } }
-        .scanning .scanner-line { display: block; animation: scanAnim 1.5s linear infinite; }
+        /* Toggle Switch */
+        .toggle-checkbox:checked { right: 0; border-color: #4f46e5; }
+        .toggle-checkbox:checked + .toggle-label { background-color: #4f46e5; }
     </style>
 </head>
 <body class="h-screen flex flex-col overflow-hidden text-slate-800">
 
-    <header class="h-14 bg-slate-900 text-white flex items-center justify-between px-6 shrink-0 z-50">
+    <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 shrink-0 z-50 shadow-sm">
         <div class="flex items-center gap-3">
-            <div class="w-8 h-8 bg-indigo-600 rounded flex items-center justify-center font-bold">K</div>
-            <h1 class="font-bold text-base">KSIKR <span class="text-slate-400 font-normal">Real-Map Edition</span></h1>
+            <div class="w-9 h-9 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-lg">K</div>
+            <div>
+                <h1 class="font-bold text-lg text-slate-900">KSIKR <span class="text-indigo-600">Enterprise</span></h1>
+                <p class="text-[11px] text-slate-500">v1000.0 | Full-Cycle LCA Platform</p>
+            </div>
         </div>
-        <div class="text-xs font-medium bg-slate-800 px-3 py-1 rounded border border-slate-700">
-            <i class="fas fa-globe-asia text-blue-400 mr-1"></i> Live Map Connected
+        <div class="flex items-center gap-6">
+            <div class="flex items-center gap-3 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200">
+                <span class="text-xs font-bold text-slate-500">System Boundary:</span>
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" id="b2b-toggle" class="sr-only peer" onchange="toggleBoundary()">
+                    <div class="w-9 h-5 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
+                    <span class="ml-2 text-xs font-bold text-slate-700" id="boundary-text">Cradle-to-Grave (B2C)</span>
+                </label>
+            </div>
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-full bg-slate-200 overflow-hidden"><i class="fas fa-user-circle text-3xl text-slate-400"></i></div>
+            </div>
         </div>
     </header>
 
     <div class="flex flex-1 overflow-hidden">
         <aside class="w-64 bg-white border-r border-slate-200 flex flex-col p-4 z-40">
             <nav class="space-y-1">
-                <div class="nav-item active" onclick="switchTab('dash')" id="nav-dash"><i class="fas fa-chart-pie w-6"></i> 대시보드</div>
-                <div class="nav-item" onclick="switchTab('lca')" id="nav-lca"><i class="fas fa-calculator w-6"></i> 정밀 전과정평가</div>
-                <div class="nav-item" onclick="switchTab('report')" id="nav-report"><i class="fas fa-file-contract w-6"></i> 인증 리포트</div>
+                <div class="nav-item active" onclick="switchTab('dash')" id="nav-dash"><i class="fas fa-chart-pie w-5 mr-3"></i> 대시보드</div>
+                <div class="nav-item" onclick="switchTab('lca')" id="nav-lca"><i class="fas fa-sliders-h w-5 mr-3"></i> LCA 평가 스튜디오</div>
+                <div class="nav-item" onclick="switchTab('report')" id="nav-report"><i class="fas fa-file-contract w-5 mr-3"></i> 인증 리포트</div>
                 <div class="my-4 border-t border-slate-100"></div>
-                <div class="nav-item" onclick="switchTab('supply')" id="nav-supply"><i class="fas fa-truck w-6"></i> 공급망 관리</div>
+                <div class="nav-item" onclick="switchTab('supply')" id="nav-supply"><i class="fas fa-globe-asia w-5 mr-3"></i> 공급망 지도</div>
             </nav>
         </aside>
 
@@ -76,294 +83,381 @@
             
             <section id="tab-dash" class="space-y-6">
                 <div class="flex justify-between items-end">
-                    <h2 class="text-2xl font-bold">Global Supply Chain Dashboard</h2>
-                    <span class="text-xs text-slate-500 bg-white px-2 py-1 rounded border">Map Source: OpenStreetMap (OSM)</span>
+                    <h2 class="text-2xl font-bold text-slate-900">Project Overview</h2>
+                    <span class="text-xs bg-white border px-2 py-1 rounded text-slate-500">Updated: Just Now</span>
                 </div>
                 
                 <div class="grid grid-cols-4 gap-4">
-                    <div class="card bg-slate-900 text-white border-0 p-5">
-                        <div class="text-slate-400 text-xs uppercase font-bold">Total GWP</div>
-                        <div class="text-3xl font-bold mt-2"><span id="dash-total">0.00</span> <span class="text-sm font-normal">kgCO2e</span></div>
+                    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                        <div class="text-xs text-slate-500 font-bold uppercase">Total Impact</div>
+                        <div class="text-3xl font-bold text-slate-900 mt-2"><span id="dash-total">0.00</span> <span class="text-sm font-normal text-slate-400">kgCO2e</span></div>
                     </div>
-                    <div class="card p-5"><div class="text-slate-400 text-xs font-bold">Supply Nodes</div><div class="text-xl font-bold mt-2">4 Locations</div></div>
-                    <div class="card p-5"><div class="text-slate-400 text-xs font-bold">Logistics Distance</div><div class="text-xl font-bold mt-2 text-indigo-600">12,450 km</div></div>
-                    <div class="card p-5"><div class="text-slate-400 text-xs font-bold">Hotspot Region</div><div class="text-xl font-bold mt-2 text-red-500">Vietnam</div></div>
+                    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                        <div class="text-xs text-slate-500 font-bold uppercase">Hotspot Stage</div>
+                        <div class="text-xl font-bold text-red-500 mt-2">Raw Material</div>
+                    </div>
+                    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                        <div class="text-xs text-slate-500 font-bold uppercase">Active Nodes</div>
+                        <div class="text-xl font-bold text-indigo-600 mt-2">4 Locations</div>
+                    </div>
+                    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                        <div class="text-xs text-slate-500 font-bold uppercase">Data Quality</div>
+                        <div class="text-xl font-bold text-green-600 mt-2">High (A)</div>
+                    </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-6 h-[500px]">
-                    <div class="card flex flex-col">
-                        <h3 class="font-bold text-sm mb-4">LCA Impact Breakdown</h3>
+                <div class="grid grid-cols-2 gap-6 h-[450px]">
+                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col">
+                        <h3 class="font-bold text-sm text-slate-800 mb-4">Stage Contribution</h3>
                         <div class="flex-1 relative">
                             <canvas id="mainChart"></canvas>
                         </div>
                     </div>
-                    
-                    <div class="card relative flex flex-col p-0 overflow-hidden">
-                        <div class="absolute top-4 left-4 z-[999] bg-white/90 px-3 py-1 rounded shadow text-xs font-bold text-slate-700">
-                            Live Supply Chain
-                        </div>
-                        <div id="map-container"></div>
+                    <div class="bg-white p-0 rounded-xl border border-slate-200 shadow-sm relative flex flex-col overflow-hidden">
+                        <div class="absolute top-4 left-4 z-[999] bg-white/90 px-3 py-1 rounded shadow text-xs font-bold">Live Supply Chain</div>
+                        <div id="map"></div>
                     </div>
                 </div>
             </section>
 
-            <section id="tab-lca" class="hidden space-y-6 max-w-6xl mx-auto">
-                <div class="flex justify-between items-center">
-                    <h2 class="text-xl font-bold">정밀 전과정평가 (Detailed LCA)</h2>
-                    <button onclick="calculateAll()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg text-sm font-bold shadow transition">
-                        <i class="fas fa-sync-alt mr-2"></i>Calculate & Sync Map
-                    </button>
+            <section id="tab-lca" class="hidden max-w-7xl mx-auto space-y-8">
+                
+                <div class="relative flex justify-between items-center px-10">
+                    <div class="step-line"></div>
+                    
+                    <div class="step-item active" onclick="setStage(1)" id="step-1">
+                        <div class="step-circle">1</div>
+                        <span class="text-xs font-bold mt-2">원료 (Raw Mat)</span>
+                    </div>
+                    <div class="step-item" onclick="setStage(2)" id="step-2">
+                        <div class="step-circle">2</div>
+                        <span class="text-xs font-bold mt-2">생산 (Mfg)</span>
+                    </div>
+                    <div class="step-item" onclick="setStage(3)" id="step-3">
+                        <div class="step-circle">3</div>
+                        <span class="text-xs font-bold mt-2">유통 (Dist)</span>
+                    </div>
+                    <div class="step-item" onclick="setStage(4)" id="step-4">
+                        <div class="step-circle">4</div>
+                        <span class="text-xs font-bold mt-2">사용 (Use)</span>
+                    </div>
+                    <div class="step-item" onclick="setStage(5)" id="step-5">
+                        <div class="step-circle">5</div>
+                        <span class="text-xs font-bold mt-2">폐기 (EOL)</span>
+                    </div>
                 </div>
 
-                <div class="grid grid-cols-12 gap-6">
+                <div class="grid grid-cols-12 gap-8">
+                    
                     <div class="col-span-8 space-y-6">
-                        <div class="card relative">
-                            <div class="flex justify-between items-start mb-4">
-                                <h3 class="font-bold text-sm flex items-center gap-2"><i class="fas fa-layer-group text-slate-400"></i> Upstream (자재/제조)</h3>
+                        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 relative">
+                            <div class="flex justify-between items-center mb-6">
+                                <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                                    <span id="stage-title">1. 원료 채취 (Raw Material Acquisition)</span>
+                                </h2>
+                                <span class="text-xs bg-indigo-50 text-indigo-700 px-2 py-1 rounded border border-indigo-100 font-bold" id="stage-scope">Scope 3 Upstream</span>
                             </div>
-                            
-                            <div id="ocr-zone" class="drop-zone rounded-xl p-8 text-center mb-6 group">
+
+                            <div id="drop-zone" class="drop-zone h-40 flex flex-col items-center justify-center mb-6 text-slate-500 hover:text-indigo-600 group">
                                 <div class="scanner-line"></div>
-                                <i class="fas fa-cloud-upload-alt text-3xl text-slate-300 group-hover:text-indigo-500 mb-2 transition"></i>
-                                <h4 class="text-sm font-bold text-slate-700">Click or Drag Invoice Here</h4>
-                                <p class="text-xs text-slate-400">AI Extract & Map Location</p>
+                                <i class="fas fa-cloud-upload-alt text-4xl mb-3 group-hover:scale-110 transition"></i>
+                                <p class="text-sm font-bold">Drop Documents, Invoices, or Images Here</p>
+                                <p class="text-xs text-slate-400 mt-1">AI automatically parses BOM, Weight & Origin</p>
                             </div>
 
                             <table class="w-full text-sm text-left">
                                 <thead class="bg-slate-50 text-xs uppercase text-slate-500 border-y">
-                                    <tr><th>Item</th><th>Origin</th><th class="text-right">Weight (kg)</th><th class="text-right">Impact</th><th class="text-center">Del</th></tr>
+                                    <tr>
+                                        <th class="p-3">Item / Process</th>
+                                        <th class="p-3">Location</th>
+                                        <th class="p-3 text-right">Value (kg/kWh)</th>
+                                        <th class="p-3 text-right">Impact</th>
+                                        <th class="p-3 text-center">Action</th>
+                                    </tr>
                                 </thead>
-                                <tbody id="upstream-table" class="divide-y divide-slate-100"></tbody>
+                                <tbody id="input-table" class="divide-y divide-slate-100">
+                                    </tbody>
                             </table>
-                        </div>
-
-                        <div class="grid grid-cols-3 gap-4">
-                            <div class="card">
-                                <h3 class="text-xs font-bold text-slate-500 mb-2">Logistics</h3>
-                                <select id="inp-dist-mode" class="input-field" onchange="calculateAll()"><option value="ship">Ocean</option><option value="air">Air</option></select>
-                            </div>
-                            <div class="card">
-                                <h3 class="text-xs font-bold text-slate-500 mb-2">Use Phase</h3>
-                                <input type="number" id="inp-use-cycle" value="50" class="input-field" oninput="calculateAll()">
-                            </div>
-                            <div class="card">
-                                <h3 class="text-xs font-bold text-slate-500 mb-2">EOL (Incinerate%)</h3>
-                                <input type="number" id="inp-eol-inc" value="30" class="input-field" oninput="calculateAll()">
+                            
+                            <div class="mt-4 flex justify-end">
+                                <button onclick="calculate()" class="bg-slate-900 text-white px-6 py-2 rounded-lg text-sm font-bold hover:bg-slate-800 transition">
+                                    Calculate Stage Impact
+                                </button>
                             </div>
                         </div>
                     </div>
 
                     <div class="col-span-4">
-                        <div class="card sticky top-6 bg-slate-900 text-white border-0">
-                            <h4 class="text-xs font-bold text-slate-400 uppercase mb-4">Total Impact</h4>
-                            <div class="flex items-end gap-2 mb-8">
-                                <span id="res-total" class="text-5xl font-black">0.00</span>
-                                <span class="text-sm text-slate-400 mb-2">kgCO2e</span>
+                        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 sticky top-6">
+                            <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Total Impact Summary</h4>
+                            <div class="flex items-end gap-2 mb-6">
+                                <span id="res-total" class="text-5xl font-black text-slate-900">0.00</span>
+                                <span class="text-sm font-medium text-slate-500 mb-2">kgCO₂e</span>
                             </div>
-                            <div class="space-y-3 text-sm border-t border-slate-700 pt-4">
-                                <div class="flex justify-between"><span>Upstream</span><span id="res-up">0.00</span></div>
-                                <div class="flex justify-between"><span>Distribution</span><span id="res-dist">0.00</span></div>
-                                <div class="flex justify-between"><span>Use Phase</span><span id="res-use">0.00</span></div>
-                                <div class="flex justify-between"><span>EOL</span><span id="res-eol">0.00</span></div>
+                            
+                            <div class="space-y-3 text-sm border-t border-slate-100 pt-4">
+                                <div class="flex justify-between items-center p-2 rounded hover:bg-slate-50">
+                                    <span class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-indigo-500"></div> Raw Material</span>
+                                    <span id="sum-1" class="font-bold">0.00</span>
+                                </div>
+                                <div class="flex justify-between items-center p-2 rounded hover:bg-slate-50">
+                                    <span class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-blue-500"></div> Production</span>
+                                    <span id="sum-2" class="font-bold">0.00</span>
+                                </div>
+                                <div class="flex justify-between items-center p-2 rounded hover:bg-slate-50 opacity-100 transition" id="row-dist">
+                                    <span class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-orange-500"></div> Distribution</span>
+                                    <span id="sum-3" class="font-bold">0.00</span>
+                                </div>
+                                <div class="flex justify-between items-center p-2 rounded hover:bg-slate-50 opacity-100 transition" id="row-use">
+                                    <span class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-green-500"></div> Use Phase</span>
+                                    <span id="sum-4" class="font-bold">0.00</span>
+                                </div>
+                                <div class="flex justify-between items-center p-2 rounded hover:bg-slate-50 opacity-100 transition" id="row-eol">
+                                    <span class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-slate-500"></div> End of Life</span>
+                                    <span id="sum-5" class="font-bold">0.00</span>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </section>
-
-            <section id="tab-report" class="hidden flex justify-center">
-                <div class="bg-white p-12 shadow-lg border w-[210mm] min-h-[297mm]">
-                    <h1 class="text-3xl font-bold border-b-2 border-black pb-4 mb-8">LCA Report</h1>
-                    <div class="text-center bg-slate-50 p-6 border rounded mb-8">
-                        <div class="text-sm text-slate-500">Total GWP</div>
-                        <div class="text-4xl font-bold mt-2"><span id="rpt-val">0.00</span> kgCO2e</div>
-                    </div>
-                </div>
-            </section>
-            
-            <section id="tab-supply" class="hidden"><div class="card text-center py-20 text-slate-400">Supply Chain Module</div></section>
-
         </main>
     </div>
 
-    <div id="ocr-modal" class="fixed inset-0 bg-black/50 hidden z-[100] flex items-center justify-center backdrop-blur-sm">
-        <div class="bg-white rounded-xl shadow-2xl w-96 p-6">
-            <h3 class="font-bold text-lg mb-4 flex items-center gap-2"><i class="fas fa-robot text-indigo-500"></i> AI Verified Data</h3>
+    <div id="ai-modal" class="fixed inset-0 bg-black/60 hidden z-[100] flex items-center justify-center backdrop-blur-sm">
+        <div class="bg-white rounded-xl shadow-2xl w-96 p-6 animate-[bounce_0.2s_ease-out]">
+            <h3 class="font-bold text-lg mb-4 flex items-center gap-2"><i class="fas fa-robot text-indigo-500"></i> AI Parsed Data</h3>
             <div class="space-y-4">
                 <div><label class="text-xs font-bold text-slate-500">Item Name</label><input type="text" id="modal-name" class="input-field font-bold"></div>
                 <div class="grid grid-cols-2 gap-4">
-                    <div><label class="text-xs font-bold text-slate-500">Origin</label><select id="modal-region" class="input-field"><option value="CN">China</option><option value="VN">Vietnam</option><option value="KR">Korea</option><option value="IN">India</option></select></div>
-                    <div><label class="text-xs font-bold text-slate-500">Weight (kg)</label><input type="number" id="modal-weight" class="input-field"></div>
+                    <div><label class="text-xs font-bold text-slate-500">Region</label><select id="modal-region" class="input-field"><option value="CN">China</option><option value="VN">Vietnam</option><option value="KR">Korea</option><option value="IN">India</option></select></div>
+                    <div><label class="text-xs font-bold text-slate-500">Value (kg/kWh)</label><input type="number" id="modal-val" class="input-field"></div>
                 </div>
-                <div id="ai-msg" class="bg-green-50 text-green-700 p-3 rounded text-xs border border-green-200"><i class="fas fa-check-circle mr-1"></i> Data within normal range.</div>
+                <div class="bg-green-50 text-green-700 p-3 rounded text-xs border border-green-200"><i class="fas fa-check-circle mr-1"></i> Data valid.</div>
             </div>
             <div class="mt-6 flex gap-2">
-                <button onclick="commitItem()" class="flex-1 bg-indigo-600 text-white py-2 rounded-lg text-sm font-bold">Confirm & Add</button>
+                <button onclick="commitData()" class="flex-1 bg-indigo-600 text-white py-2 rounded-lg text-sm font-bold hover:bg-indigo-700">Confirm Add</button>
                 <button onclick="closeModal()" class="px-4 py-2 rounded-lg text-sm font-bold text-slate-500 hover:bg-slate-100">Cancel</button>
             </div>
         </div>
     </div>
 
     <script>
-        // --- MAP ENGINE ---
-        let map;
-        let markers = [];
-        
-        // Coordinates for Asian Hubs
-        const LOCATIONS = {
-            'KR': { lat: 37.5665, lng: 126.9780, name: 'Seoul HQ' },
-            'CN': { lat: 31.2304, lng: 121.4737, name: 'Shanghai (Mat)' },
-            'VN': { lat: 10.8231, lng: 106.6297, name: 'HCMC (Factory)' },
-            'IN': { lat: 19.0760, lng: 72.8777, name: 'Mumbai (Cotton)' }
+        // --- 1. CONFIG & STATE ---
+        let MAP;
+        let CHART;
+        let CURRENT_STAGE = 1;
+        let IS_B2B = false; // Default B2C (Cradle to Grave)
+
+        // Data Store for 5 Stages
+        const DB = {
+            1: [ { id: 101, name: 'Cotton Yarn', region: 'IN', val: 0.5, impact: 0.75 } ], // Material
+            2: [ { id: 201, name: 'Weaving Energy', region: 'VN', val: 2.0, impact: 0.90 } ], // Production
+            3: [], // Dist
+            4: [], // Use
+            5: []  // EOL
         };
 
+        const STAGE_INFO = {
+            1: { title: '1. 원료 채취 (Raw Material)', scope: 'Scope 3 Upstream' },
+            2: { title: '2. 제품 생산 (Manufacturing)', scope: 'Scope 1 & 2' },
+            3: { title: '3. 유통 및 물류 (Distribution)', scope: 'Scope 3 Downstream' },
+            4: { title: '4. 사용 단계 (Use Phase)', scope: 'Scope 3 Downstream' },
+            5: { title: '5. 폐기 단계 (End of Life)', scope: 'Scope 3 Downstream' }
+        };
+
+        // --- 2. MAP LOGIC (LEAFLET) ---
         function initMap() {
-            // Initialize Leaflet Map
-            map = L.map('map-container').setView([20, 110], 3); // Center on Asia
-
-            // Add OpenStreetMap Tile Layer (Free, No Key)
+            MAP = L.map('map').setView([20, 100], 3);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; OpenStreetMap contributors',
+                attribution: '&copy; OpenStreetMap',
                 maxZoom: 18
-            }).addTo(map);
-
+            }).addTo(MAP);
+            
             // Add Initial Markers
-            addMarker('KR', 'red');
-            addMarker('VN', 'orange');
-            addMarker('CN', 'blue');
+            addMarker(37.5665, 126.9780, 'red', 'Seoul HQ');
+            addMarker(10.8231, 106.6297, 'orange', 'Vietnam Mfg');
+            addMarker(19.0760, 72.8777, 'indigo', 'India Mat');
         }
 
-        function addMarker(code, color) {
-            const loc = LOCATIONS[code];
-            if(!loc) return;
-
-            // Simple Circle Marker
-            const marker = L.circleMarker([loc.lat, loc.lng], {
-                color: 'white',
-                fillColor: color === 'red' ? '#ef4444' : (color === 'orange' ? '#f97316' : '#3b82f6'),
-                fillOpacity: 1,
-                radius: 8,
-                weight: 2
-            }).addTo(map).bindPopup(`<b>${loc.name}</b><br>Supply Node`);
-            
-            markers.push(marker);
+        function addMarker(lat, lng, color, title) {
+            L.circleMarker([lat, lng], {
+                color: 'white', fillColor: color==='red'?'#ef4444':(color==='orange'?'#f97316':'#4f46e5'),
+                fillOpacity: 1, radius: 6, weight: 2
+            }).addTo(MAP).bindPopup(`<b>${title}</b>`);
         }
 
-        // --- LCA LOGIC ---
-        let UPSTREAM = [
-            { name: 'Poly Fabric', region: 'CN', w: 0.25, impact: 0.375 },
-            { name: 'Rubber Sole', region: 'VN', w: 0.15, impact: 0.35 }
-        ];
-        let CHART = null;
-
-        function calculateAll() {
-            let upTotal = 0, totalW = 0;
-            UPSTREAM.forEach(i => { upTotal += i.impact; totalW += i.w; });
-
-            const dMode = document.getElementById('inp-dist-mode').value;
-            const distImpact = (totalW/1000) * 8000 * (dMode==='ship'?0.008:0.602);
+        // --- 3. CORE LOGIC ---
+        
+        function setStage(stage) {
+            if(IS_B2B && stage > 2) { alert('B2B Mode (Cradle-to-Gate): Downstream stages are disabled.'); return; }
             
-            const uCycle = parseFloat(document.getElementById('inp-use-cycle').value) || 0;
-            const useImpact = uCycle * 0.5 * 0.478;
-
-            const eInc = parseFloat(document.getElementById('inp-eol-inc').value)/100 || 0;
-            const eolImpact = totalW * (eInc*1.2 + (1-eInc)*0.1);
-
-            const total = upTotal + distImpact + useImpact + eolImpact;
-
-            // Update UI
-            document.getElementById('res-total').innerText = total.toFixed(2);
-            document.getElementById('dash-total').innerText = total.toFixed(2);
-            document.getElementById('rpt-val').innerText = total.toFixed(2);
+            CURRENT_STAGE = stage;
             
-            document.getElementById('res-up').innerText = upTotal.toFixed(2);
-            document.getElementById('res-dist').innerText = distImpact.toFixed(2);
-            document.getElementById('res-use').innerText = useImpact.toFixed(2);
-            document.getElementById('res-eol').innerText = eolImpact.toFixed(2);
+            // Update Stepper UI
+            document.querySelectorAll('.step-item').forEach((el, idx) => {
+                if((idx + 1) === stage) el.classList.add('active');
+                else el.classList.remove('active');
+            });
 
+            // Update Title & Table
+            document.getElementById('stage-title').innerText = STAGE_INFO[stage].title;
+            document.getElementById('stage-scope').innerText = STAGE_INFO[stage].scope;
             renderTable();
-            updateChart([upTotal, distImpact, useImpact, eolImpact]);
+        }
+
+        function toggleBoundary() {
+            const toggle = document.getElementById('b2b-toggle');
+            IS_B2B = !toggle.checked; // Checked = B2C (Cradle-to-Grave)
+            
+            const text = document.getElementById('boundary-text');
+            text.innerText = IS_B2B ? "Cradle-to-Gate (B2B)" : "Cradle-to-Grave (B2C)";
+
+            // Update UI State
+            [3, 4, 5].forEach(i => {
+                const step = document.getElementById(`step-${i}`);
+                const row = document.getElementById(`row-${i === 3 ? 'dist' : (i === 4 ? 'use' : 'eol')}`);
+                if(IS_B2B) {
+                    step.classList.add('disabled');
+                    row.style.opacity = '0.3';
+                    row.style.textDecoration = 'line-through';
+                    // Clear Data for disabled stages
+                    DB[i] = []; 
+                } else {
+                    step.classList.remove('disabled');
+                    row.style.opacity = '1';
+                    row.style.textDecoration = 'none';
+                }
+            });
+
+            if(IS_B2B && CURRENT_STAGE > 2) setStage(1);
+            calculate();
         }
 
         function renderTable() {
-            const tbody = document.getElementById('upstream-table');
+            const tbody = document.getElementById('input-table');
             tbody.innerHTML = '';
-            UPSTREAM.forEach((item, idx) => {
+            const data = DB[CURRENT_STAGE];
+            
+            if(data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-400 text-xs">No data yet. Drag & drop files to add.</td></tr>`;
+                return;
+            }
+
+            data.forEach((item, idx) => {
                 tbody.innerHTML += `
                     <tr class="border-b border-slate-100">
-                        <td class="p-3 font-medium">${item.name}</td>
-                        <td class="p-3"><span class="bg-slate-100 px-2 py-0.5 rounded text-xs border">${item.region}</span></td>
-                        <td class="p-3 text-right font-mono text-xs">${item.w}</td>
+                        <td class="p-3 font-medium text-slate-700">${item.name}</td>
+                        <td class="p-3 text-xs"><span class="bg-slate-100 px-2 py-0.5 rounded border">${item.region}</span></td>
+                        <td class="p-3 text-right font-mono text-xs">${item.val}</td>
                         <td class="p-3 text-right font-bold text-xs">${item.impact.toFixed(2)}</td>
                         <td class="p-3 text-center"><button onclick="delItem(${idx})" class="text-slate-400 hover:text-red-500"><i class="fas fa-trash"></i></button></td>
-                    </tr>`;
+                    </tr>
+                `;
             });
         }
 
-        function delItem(idx) {
-            UPSTREAM.splice(idx, 1);
-            calculateAll();
+        function calculate() {
+            let sums = [0,0,0,0,0,0]; // 0 index unused
+            let total = 0;
+
+            for(let i=1; i<=5; i++) {
+                if(IS_B2B && i > 2) { sums[i] = 0; continue; }
+                const stageSum = DB[i].reduce((a,b) => a + b.impact, 0);
+                sums[i] = stageSum;
+                total += stageSum;
+                document.getElementById(`sum-${i}`).innerText = stageSum.toFixed(2);
+            }
+
+            document.getElementById('res-total').innerText = total.toFixed(2);
+            document.getElementById('dash-total').innerText = total.toFixed(2);
+            
+            updateChart(sums.slice(1)); // Remove 0 index
         }
 
+        function delItem(idx) {
+            DB[CURRENT_STAGE].splice(idx, 1);
+            renderTable();
+            calculate();
+        }
+
+        // --- 4. DRAG & DROP + AI MODAL ---
+        const zone = document.getElementById('drop-zone');
+        const modal = document.getElementById('ai-modal');
+
+        zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.classList.add('border-indigo-500', 'bg-indigo-50'); });
+        zone.addEventListener('dragleave', () => { zone.classList.remove('border-indigo-500', 'bg-indigo-50'); });
+        zone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            zone.classList.remove('border-indigo-500', 'bg-indigo-50');
+            startScan();
+        });
+        zone.addEventListener('click', startScan);
+
+        function startScan() {
+            zone.classList.add('scanning');
+            setTimeout(() => {
+                zone.classList.remove('scanning');
+                // Simulate AI Detection based on Stage
+                let mockName = 'Unknown';
+                let mockVal = 100;
+                
+                if(CURRENT_STAGE === 1) { mockName = 'Scanned: Recycled Poly'; mockVal = 0.5; }
+                else if(CURRENT_STAGE === 2) { mockName = 'Detected: Knitting Energy'; mockVal = 120; }
+                else if(CURRENT_STAGE === 3) { mockName = 'Logistics: Sea Freight'; mockVal = 5000; }
+                else if(CURRENT_STAGE === 4) { mockName = 'Use: Washing 40C'; mockVal = 50; }
+                else { mockName = 'EOL: Incineration'; mockVal = 0.5; }
+
+                openModal(mockName, 'VN', mockVal);
+            }, 1200);
+        }
+
+        function openModal(n, r, v) {
+            document.getElementById('modal-name').value = n;
+            document.getElementById('modal-region').value = r;
+            document.getElementById('modal-val').value = v;
+            modal.classList.remove('hidden');
+        }
+        function closeModal() { modal.classList.add('hidden'); }
+        
+        function commitData() {
+            const n = document.getElementById('modal-name').value;
+            const r = document.getElementById('modal-region').value;
+            const v = parseFloat(document.getElementById('modal-val').value);
+            
+            // Simple Impact Calc
+            const impact = v * 1.2; 
+            
+            DB[CURRENT_STAGE].push({ id: Date.now(), name: n, region: r, val: v, impact: impact });
+            closeModal();
+            renderTable();
+            calculate();
+        }
+
+        // --- 5. CHART & INIT ---
         function updateChart(data) {
             if(CHART) { CHART.data.datasets[0].data = data; CHART.update(); }
         }
 
-        // --- OCR ---
-        const zone = document.getElementById('ocr-zone');
-        const modal = document.getElementById('ocr-modal');
-        
-        zone.addEventListener('click', () => {
-            zone.classList.add('scanning');
-            setTimeout(() => {
-                zone.classList.remove('scanning');
-                openModal('Scanned: Cotton Yarn', 'IN', 500);
-            }, 1000);
-        });
-
-        function openModal(n, r, w) {
-            document.getElementById('modal-name').value = n;
-            document.getElementById('modal-region').value = r;
-            document.getElementById('modal-weight').value = w;
-            modal.classList.remove('hidden');
-        }
-        function closeModal() { modal.classList.add('hidden'); }
-        function commitItem() {
-            const n = document.getElementById('modal-name').value;
-            const r = document.getElementById('modal-region').value;
-            const w = parseFloat(document.getElementById('modal-weight').value);
-            UPSTREAM.push({ name: n, region: r, w: w, impact: w * 1.2 });
-            
-            // Add Marker dynamically if new region
-            addMarker(r, 'blue');
-            
-            closeModal();
-            calculateAll();
-        }
-
-        // --- NAVIGATION ---
         function switchTab(id) {
             document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
             document.getElementById('tab-' + id).classList.remove('hidden');
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             document.getElementById('nav-' + id).classList.add('active');
-            
-            // Fix Leaflet Resize Bug when hidden
-            if(id === 'dash') {
-                setTimeout(() => { map.invalidateSize(); }, 100);
-            }
+            if(id === 'dash' && MAP) { setTimeout(() => MAP.invalidateSize(), 100); }
         }
 
         window.onload = function() {
             const ctx = document.getElementById('mainChart').getContext('2d');
             CHART = new Chart(ctx, {
                 type: 'doughnut',
-                data: { labels: ['Upstream', 'Logistics', 'Use', 'EOL'], datasets: [{ data: [0,0,0,0], backgroundColor: ['#4f46e5', '#f59e0b', '#10b981', '#64748b'], borderWidth:0 }] },
-                options: { responsive: true, maintainAspectRatio: false, cutout: '75%', plugins: { legend: { position: 'right' } } }
+                data: { labels: ['Mat', 'Mfg', 'Dist', 'Use', 'EOL'], datasets: [{ data: [0,0,0,0,0], backgroundColor: ['#4f46e5', '#3b82f6', '#f59e0b', '#22c55e', '#64748b'] }] },
+                options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'right' } } }
             });
             
             initMap();
-            calculateAll();
+            document.getElementById('b2b-toggle').checked = true; // Set initial state to B2C
+            calculate();
         };
     </script>
 </body>
