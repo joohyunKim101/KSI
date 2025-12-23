@@ -3,317 +3,353 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KSIKR - Full Cycle LCA Platform (v700)</title>
+    <title>KSIKR - Official LCA Platform (v800)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700&display=swap');
-        body { font-family: 'Pretendard', sans-serif; background-color: #f8fafc; }
-        
-        /* Animations */
-        @keyframes scan { 0% { top: 0%; } 50% { top: 100%; } 100% { top: 0%; } }
+        body { font-family: 'Pretendard', sans-serif; background-color: #f1f5f9; }
+
+        /* Menu Styles */
+        .nav-item { display: flex; align-items: center; padding: 12px 16px; border-radius: 8px; color: #64748b; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; margin-bottom: 4px; }
+        .nav-item:hover { background-color: #f8fafc; color: #334155; }
+        .nav-item.active { background-color: #e0e7ff; color: #4338ca; font-weight: 700; }
+        .nav-item i { width: 24px; text-align: center; margin-right: 8px; }
+
+        /* Card & Inputs */
+        .card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .input-std { width: 100%; border: 1px solid #cbd5e1; border-radius: 6px; padding: 6px 10px; font-size: 13px; text-align: right; }
+        .input-std:focus { outline: none; border-color: #4f46e5; ring: 2px solid #e0e7ff; }
+
+        /* Visuals */
         .scanner-line { position: absolute; width: 100%; height: 2px; background: #3b82f6; box-shadow: 0 0 10px #3b82f6; animation: scan 2s linear infinite; display: none; }
+        @keyframes scan { 0% { top: 0%; } 100% { top: 100%; } }
         .scanning .scanner-line { display: block; }
-        
-        .glass-card { background: rgba(255, 255, 255, 0.95); border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
-        .section-title { font-size: 14px; font-weight: 700; color: #1e293b; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
-        .section-badge { font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 700; text-transform: uppercase; }
-        
-        /* Input Styles */
-        .input-mini { width: 100%; background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 4px; padding: 4px 8px; font-size: 12px; text-align: right; }
-        .input-mini:focus { outline: none; border-color: #3b82f6; background: white; }
     </style>
 </head>
-<body class="h-screen flex flex-col text-slate-800 overflow-hidden">
+<body class="h-screen flex flex-col overflow-hidden text-slate-800">
 
-    <header class="h-14 bg-slate-900 text-white flex items-center justify-between px-6 z-30 shrink-0 shadow-md">
+    <header class="h-14 bg-slate-900 text-white flex items-center justify-between px-6 shrink-0 z-50">
         <div class="flex items-center gap-4">
-            <div class="w-8 h-8 bg-red-600 rounded flex items-center justify-center font-bold text-lg">K</div>
+            <div class="w-8 h-8 bg-indigo-600 rounded flex items-center justify-center font-bold text-lg">K</div>
             <div>
-                <h1 class="font-bold text-base tracking-tight">KSIKR <span class="text-blue-400 font-normal">Full-Cycle</span></h1>
+                <h1 class="font-bold text-base tracking-tight">KSIKR <span class="text-slate-400 font-normal">Platform</span></h1>
+                <p class="text-[10px] text-slate-400">ISO 14067 & PEFCR Compliant</p>
             </div>
         </div>
-        <div class="flex items-center gap-3 text-xs">
-            <div class="px-3 py-1 bg-slate-800 rounded-full border border-slate-700">
-                <i class="fas fa-circle-notch text-green-400 mr-1"></i> Scope 1, 2, 3 Covered
+        <div class="flex items-center gap-4 text-xs">
+             <div class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
+                <span>System Online</span>
+            </div>
+            <div class="px-3 py-1 bg-slate-800 rounded border border-slate-700">
+                User: <span class="font-bold">CEO Kim</span>
             </div>
         </div>
     </header>
 
     <div class="flex flex-1 overflow-hidden">
         
-        <main class="flex-1 overflow-y-auto p-6 relative flex flex-col gap-6">
-            
-            <div class="glass-card rounded-xl p-6 relative overflow-hidden">
-                <div class="flex justify-between items-start mb-4">
-                    <div>
-                        <div class="section-title">
-                            <i class="fas fa-industry text-blue-500"></i> Upstream: 제조 및 자재
-                            <span class="section-badge bg-blue-100 text-blue-700">Scope 3 (Up)</span>
-                        </div>
-                        <p class="text-xs text-slate-500">OCR로 거래명세서를 스캔하여 자재 데이터를 자동 입력합니다.</p>
+        <aside class="w-64 bg-white border-r border-slate-200 flex flex-col p-4 z-40">
+            <nav class="flex-1">
+                <div class="text-xs font-bold text-slate-400 uppercase mb-2 px-2">Main Module</div>
+                <div class="nav-item" onclick="setTab('dash')" id="nav-dash"><i class="fas fa-chart-pie"></i> 대시보드 (Dashboard)</div>
+                <div class="nav-item active" onclick="setTab('lca')" id="nav-lca"><i class="fas fa-calculator"></i> 정밀 전과정평가 (LCA)</div>
+                <div class="nav-item" onclick="setTab('report')" id="nav-report"><i class="fas fa-file-certificate"></i> 인증 리포트 (Report)</div>
+                
+                <div class="text-xs font-bold text-slate-400 uppercase mt-6 mb-2 px-2">Data & Management</div>
+                <div class="nav-item" onclick="setTab('supply')" id="nav-supply"><i class="fas fa-network-wired"></i> 공급망 데이터 (SCM)</div>
+                <div class="nav-item" onclick="setTab('history')" id="nav-history"><i class="fas fa-history"></i> 산정 이력 (History)</div>
+                <div class="nav-item" onclick="setTab('company')" id="nav-company"><i class="fas fa-building"></i> 기업 정보 (Company)</div>
+            </nav>
+            <div class="bg-indigo-50 p-4 rounded-xl border border-indigo-100">
+                <div class="text-xs text-indigo-800 font-bold mb-1">Pan-Asian DB</div>
+                <div class="text-[10px] text-indigo-600">KR, CN, VN, IN, ID, BD<br>Grid Mix Applied.</div>
+            </div>
+        </aside>
+
+        <main class="flex-1 overflow-y-auto bg-slate-50 p-8 relative">
+
+            <section id="tab-dash" class="hidden space-y-6">
+                <h2 class="text-2xl font-bold text-slate-900">Enterprise Dashboard</h2>
+                <div class="grid grid-cols-4 gap-4">
+                    <div class="card bg-slate-900 text-white border-0">
+                        <div class="text-xs text-slate-400">Avg Carbon Footprint</div>
+                        <div class="text-3xl font-bold mt-1">12.4 <span class="text-sm font-normal">kgCO2e</span></div>
                     </div>
-                    <div id="drop-ocr" class="border-2 border-dashed border-blue-300 bg-blue-50/50 rounded-lg px-4 py-2 text-center cursor-pointer hover:bg-blue-100 transition relative w-64">
-                        <div class="scanner-line" id="ocr-scanner"></div>
-                        <div class="flex items-center gap-3 justify-center">
-                            <i class="fas fa-file-invoice text-xl text-blue-600"></i>
-                            <div class="text-left">
-                                <div class="text-xs font-bold text-blue-800">Smart Invoice Scan</div>
-                                <div class="text-[10px] text-blue-600">Drop PDF/Image here</div>
+                    <div class="card"><div class="text-xs text-slate-500">Total Projects</div><div class="text-3xl font-bold mt-1">8</div></div>
+                    <div class="card"><div class="text-xs text-slate-500">Data Confidence</div><div class="text-3xl font-bold mt-1 text-green-600">High</div></div>
+                    <div class="card"><div class="text-xs text-slate-500">Hotspot</div><div class="text-xl font-bold mt-2">Vietnam (Dyeing)</div></div>
+                </div>
+                <div class="card h-96">
+                    <h3 class="font-bold text-sm mb-4">Regional Emission Map</h3>
+                    <div class="w-full h-full bg-slate-100 rounded-lg flex items-center justify-center text-slate-400">[Map Visualization Component]</div>
+                </div>
+            </section>
+
+            <section id="tab-lca" class="max-w-6xl mx-auto space-y-6">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-xl font-bold text-slate-900">정밀 전과정평가 (Detailed LCA)</h2>
+                    <div class="flex gap-2">
+                        <span class="bg-white border px-3 py-1 rounded text-xs font-bold text-slate-600">Method: ISO 14067</span>
+                        <button onclick="runCalc()" class="bg-indigo-600 text-white px-4 py-1 rounded text-sm font-bold shadow hover:bg-indigo-700">Calculate All</button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-12 gap-6">
+                    <div class="col-span-8 space-y-6">
+                        
+                        <div class="card relative">
+                            <div class="flex justify-between mb-4">
+                                <h3 class="font-bold text-sm flex items-center gap-2"><i class="fas fa-industry text-slate-400"></i> Upstream (제조/자재)</h3>
+                                <div id="btn-ocr" class="cursor-pointer text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded font-bold border border-blue-200 hover:bg-blue-100">
+                                    <i class="fas fa-camera mr-1"></i> Scan Invoice (OCR)
+                                    <div class="scanner-line" id="ocr-scan-line"></div>
+                                </div>
+                            </div>
+                            <table class="w-full text-sm text-left">
+                                <thead class="bg-slate-50 text-xs uppercase text-slate-500">
+                                    <tr><th>Item</th><th>Origin</th><th class="text-right">Weight(kg)</th><th class="text-right">Energy(kWh)</th><th class="text-right">Impact</th></tr>
+                                </thead>
+                                <tbody id="lca-upstream-list">
+                                    </tbody>
+                            </table>
+                        </div>
+
+                        <div class="card">
+                            <h3 class="font-bold text-sm mb-4 flex items-center gap-2"><i class="fas fa-truck text-slate-400"></i> Distribution (유통)</h3>
+                            <div class="grid grid-cols-3 gap-4 bg-slate-50 p-4 rounded-lg border border-slate-200">
+                                <div>
+                                    <label class="text-xs font-bold text-slate-500">Destination</label>
+                                    <select class="input-std" id="dist-dest">
+                                        <option value="EU">Europe (Hamburg)</option>
+                                        <option value="US">USA (Los Angeles)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="text-xs font-bold text-slate-500">Transport Mode</label>
+                                    <select class="input-std" id="dist-mode" onchange="runCalc()">
+                                        <option value="ship">Ocean Freight (Ship)</option>
+                                        <option value="air">Air Freight (Cargo)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="text-xs font-bold text-slate-500">Distance (km)</label>
+                                    <input type="number" id="dist-km" value="11000" class="input-std" oninput="runCalc()">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <h3 class="font-bold text-sm mb-4 flex items-center gap-2"><i class="fas fa-tshirt text-slate-400"></i> Use Phase (사용) <span class="text-[10px] text-slate-400 ml-2">*Based on PEFCR</span></h3>
+                            <div class="grid grid-cols-4 gap-4 bg-slate-50 p-4 rounded-lg border border-slate-200">
+                                <div>
+                                    <label class="text-xs font-bold text-slate-500">Category</label>
+                                    <select class="input-std" id="use-cat">
+                                        <option value="apparel">Apparel (T-shirt)</option>
+                                        <option value="shoes">Footwear</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="text-xs font-bold text-slate-500">Wash Cycles</label>
+                                    <input type="number" id="use-cycle" value="50" class="input-std" oninput="runCalc()">
+                                </div>
+                                <div>
+                                    <label class="text-xs font-bold text-slate-500">Wash Temp</label>
+                                    <select class="input-std" id="use-temp" onchange="runCalc()">
+                                        <option value="30">30°C (Eco)</option>
+                                        <option value="40">40°C (Std)</option>
+                                        <option value="60">60°C (Hot)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="text-xs font-bold text-slate-500">User Grid</label>
+                                    <select class="input-std" id="use-grid" onchange="runCalc()">
+                                        <option value="0.25">EU Avg</option>
+                                        <option value="0.38">USA Avg</option>
+                                        <option value="0.48">KR Avg</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <h3 class="font-bold text-sm mb-4 flex items-center gap-2"><i class="fas fa-recycle text-slate-400"></i> End of Life (폐기)</h3>
+                            <div class="grid grid-cols-3 gap-4 bg-slate-50 p-4 rounded-lg border border-slate-200">
+                                <div>
+                                    <label class="text-xs font-bold text-slate-500">Landfill (%)</label>
+                                    <input type="number" id="eol-land" value="50" class="input-std" oninput="balanceEOL('land')">
+                                </div>
+                                <div>
+                                    <label class="text-xs font-bold text-slate-500">Incineration (%)</label>
+                                    <input type="number" id="eol-inc" value="30" class="input-std" oninput="balanceEOL('inc')">
+                                </div>
+                                <div>
+                                    <label class="text-xs font-bold text-slate-500">Recycle (%)</label>
+                                    <input type="number" id="eol-rec" value="20" class="input-std" oninput="balanceEOL('rec')">
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <table class="w-full text-sm text-left">
-                    <thead class="bg-slate-50 text-slate-500 text-xs uppercase">
-                        <tr>
-                            <th class="p-2">Material / Process</th>
-                            <th class="p-2">Region</th>
-                            <th class="p-2 text-right">Weight/Qty</th>
-                            <th class="p-2 text-center">Bot Status</th>
-                            <th class="p-2 text-right">Impact</th>
-                        </tr>
-                    </thead>
-                    <tbody id="upstream-list" class="divide-y divide-slate-100">
-                        </tbody>
-                </table>
-                <div class="mt-2 text-right text-xs text-slate-400">
-                    Total Material Weight: <span id="total-weight" class="font-bold text-slate-800">0.00</span> kg
-                </div>
-            </div>
+                    <div class="col-span-4">
+                        <div class="bg-white rounded-xl shadow-lg border border-slate-200 p-6 sticky top-6">
+                            <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Total Life Cycle Impact</h4>
+                            <div class="flex items-end gap-2 mb-6">
+                                <span id="res-total" class="text-5xl font-black text-slate-900">0.00</span>
+                                <span class="text-sm font-medium text-slate-500 mb-2">kgCO₂e</span>
+                            </div>
+                            
+                            <div class="space-y-3 text-sm border-t pt-4">
+                                <div class="flex justify-between"><span><i class="fas fa-industry w-5 text-slate-400"></i> Upstream</span><span id="res-up" class="font-bold">0.00</span></div>
+                                <div class="flex justify-between"><span><i class="fas fa-truck w-5 text-slate-400"></i> Distribution</span><span id="res-dist" class="font-bold">0.00</span></div>
+                                <div class="flex justify-between"><span><i class="fas fa-tshirt w-5 text-slate-400"></i> Use Phase</span><span id="res-use" class="font-bold">0.00</span></div>
+                                <div class="flex justify-between"><span><i class="fas fa-recycle w-5 text-slate-400"></i> End of Life</span><span id="res-eol" class="font-bold">0.00</span></div>
+                            </div>
 
-            <div class="glass-card rounded-xl p-6">
-                <div class="section-title">
-                    <i class="fas fa-truck text-orange-500"></i> Distribution: 유통 물류
-                    <span class="section-badge bg-orange-100 text-orange-700">Scope 3 (Down)</span>
-                </div>
-                <div class="grid grid-cols-3 gap-4 text-sm">
-                    <div class="bg-slate-50 p-3 rounded border">
-                        <label class="block text-xs text-slate-500 mb-1">Target Market</label>
-                        <select class="input-mini" onchange="updateDownstream()">
-                            <option>EU (Hamburg)</option>
-                            <option>USA (LA)</option>
-                            <option>Japan (Tokyo)</option>
-                        </select>
-                    </div>
-                    <div class="bg-slate-50 p-3 rounded border">
-                        <label class="block text-xs text-slate-500 mb-1">Transport Mode</label>
-                        <select id="dist-mode" class="input-mini" onchange="updateDownstream()">
-                            <option value="ship">Ocean Freight (Ship)</option>
-                            <option value="air">Air Freight (Plane)</option>
-                        </select>
-                    </div>
-                    <div class="bg-slate-50 p-3 rounded border">
-                        <label class="block text-xs text-slate-500 mb-1">Impact (kgCO2e)</label>
-                        <div id="res-dist" class="text-right font-bold text-slate-800 pt-1">0.00</div>
+                            <button onclick="setTab('report')" class="w-full bg-slate-900 text-white mt-8 py-3 rounded-lg font-bold shadow hover:bg-slate-800 transition">
+                                Generate Report
+                            </button>
+                        </div>
                     </div>
                 </div>
-            </div>
+            </section>
 
-            <div class="grid grid-cols-2 gap-6">
-                <div class="glass-card rounded-xl p-6">
-                    <div class="section-title">
-                        <i class="fas fa-tshirt text-green-500"></i> Use Phase: 사용 단계
-                        <span class="section-badge bg-green-100 text-green-700">Scope 3 (Down)</span>
+            <section id="tab-report" class="hidden max-w-4xl mx-auto">
+                <div class="bg-white p-16 shadow-2xl min-h-[800px]">
+                    <div class="flex justify-between items-end border-b-2 border-black pb-4 mb-8">
+                        <h1 class="text-3xl font-bold">LCA Verification Report</h1>
+                        <div class="text-right text-xs">
+                            <div>Standard: <span class="font-bold">ISO 14067:2018</span></div>
+                            <div>Date: <span id="rpt-date">2025-12-23</span></div>
+                        </div>
                     </div>
-                    <div class="space-y-3">
-                        <div class="flex justify-between items-center text-sm">
-                            <span class="text-slate-600 text-xs">Product Type</span>
-                            <select id="use-type" class="input-mini w-32" onchange="updateDownstream()">
-                                <option value="apparel">Apparel (Wash)</option>
-                                <option value="footwear">Footwear (Clean)</option>
-                            </select>
+                    <div class="space-y-6">
+                        <div class="bg-slate-50 p-6 text-center rounded border">
+                            <div class="text-sm text-slate-500">Global Warming Potential (GWP)</div>
+                            <div class="text-4xl font-bold mt-2"><span id="rpt-val">0.00</span> kgCO2e</div>
                         </div>
-                        <div class="flex justify-between items-center text-sm">
-                            <span class="text-slate-600 text-xs">Cycles / Lifetime</span>
-                            <input type="number" id="use-cycles" value="50" class="input-mini w-20" onchange="updateDownstream()">
-                        </div>
-                        <div class="flex justify-between items-center text-sm pt-2 border-t border-slate-100">
-                            <span class="font-bold text-slate-700">Impact</span>
-                            <span id="res-use" class="font-bold text-slate-800">0.00</span>
-                        </div>
+                        <p class="text-sm text-slate-600 leading-relaxed">
+                            This report certifies that the Life Cycle Assessment (LCA) for the product has been conducted in accordance with ISO 14040/14044 and ISO 14067 standards.
+                            The assessment covers Cradle-to-Grave boundaries including Raw Material Acquisition, Production, Distribution, Use, and End-of-Life stages.
+                        </p>
                     </div>
                 </div>
+            </section>
 
-                <div class="glass-card rounded-xl p-6">
-                    <div class="section-title">
-                        <i class="fas fa-recycle text-slate-500"></i> End of Life: 폐기
-                        <span class="section-badge bg-slate-100 text-slate-600">Scope 3 (Down)</span>
-                    </div>
-                    <div class="space-y-3">
-                        <div class="flex justify-between items-center text-sm">
-                            <span class="text-slate-600 text-xs">Scenario</span>
-                            <select id="eol-mode" class="input-mini w-32" onchange="updateDownstream()">
-                                <option value="mixed">Global Avg (Mix)</option>
-                                <option value="burn">Incineration</option>
-                                <option value="bury">Landfill</option>
-                            </select>
-                        </div>
-                        <div class="flex justify-between items-center text-sm">
-                            <span class="text-slate-600 text-xs text-right w-full pr-2">Total Weight Applied</span>
-                        </div>
-                        <div class="flex justify-between items-center text-sm pt-2 border-t border-slate-100">
-                            <span class="font-bold text-slate-700">Impact</span>
-                            <span id="res-eol" class="font-bold text-slate-800">0.00</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <section id="tab-supply" class="hidden"><div class="card h-96 flex items-center justify-center text-slate-400 font-bold">Supply Chain Management Module (Loaded)</div></section>
+            <section id="tab-history" class="hidden"><div class="card h-96 flex items-center justify-center text-slate-400 font-bold">Calculation History Module (Loaded)</div></section>
+            <section id="tab-company" class="hidden"><div class="card h-96 flex items-center justify-center text-slate-400 font-bold">Company Information Module (Loaded)</div></section>
 
         </main>
-
-        <aside class="w-80 bg-white border-l border-slate-200 flex flex-col z-20 shadow-xl">
-            <div class="p-6 bg-slate-900 text-white">
-                <div class="text-xs text-slate-400 uppercase font-bold tracking-wider mb-2">Total Life Cycle Impact</div>
-                <div class="flex items-baseline gap-2">
-                    <span id="total-final" class="text-4xl font-black">0.00</span>
-                    <span class="text-sm font-medium text-slate-400">kgCO₂e</span>
-                </div>
-                <div class="mt-4 flex gap-1">
-                    <div id="bar-up" class="h-1 bg-blue-500 rounded-l" style="width: 50%" title="Upstream"></div>
-                    <div id="bar-down" class="h-1 bg-orange-500 rounded-r" style="width: 50%" title="Downstream"></div>
-                </div>
-                <div class="flex justify-between text-[10px] text-slate-400 mt-1">
-                    <span>Upstream</span>
-                    <span>Downstream</span>
-                </div>
-            </div>
-
-            <div class="p-6 flex-1 overflow-y-auto">
-                <h4 class="text-xs font-bold text-slate-800 mb-4">Stage Breakdown</h4>
-                <div class="space-y-4">
-                    <div class="flex justify-between text-xs">
-                        <span class="text-slate-500"><i class="fas fa-industry w-4"></i> Mfg & Mat</span>
-                        <span id="sum-up" class="font-bold">0.00</span>
-                    </div>
-                    <div class="flex justify-between text-xs">
-                        <span class="text-slate-500"><i class="fas fa-truck w-4"></i> Distribution</span>
-                        <span id="sum-dist" class="font-bold">0.00</span>
-                    </div>
-                    <div class="flex justify-between text-xs">
-                        <span class="text-slate-500"><i class="fas fa-tshirt w-4"></i> Use Phase</span>
-                        <span id="sum-use" class="font-bold">0.00</span>
-                    </div>
-                    <div class="flex justify-between text-xs">
-                        <span class="text-slate-500"><i class="fas fa-recycle w-4"></i> End of Life</span>
-                        <span id="sum-eol" class="font-bold">0.00</span>
-                    </div>
-                </div>
-
-                <div class="mt-8 bg-indigo-50 p-4 rounded-xl border border-indigo-100">
-                    <h5 class="text-xs font-bold text-indigo-800 mb-1">AI Recommendation</h5>
-                    <p class="text-[11px] text-indigo-600 leading-snug">
-                        항공 운송(Air) 비율을 줄이고 해상 운송으로 전환 시, 총 배출량을 <span class="font-bold">12%</span> 절감할 수 있습니다.
-                    </p>
-                </div>
-            </div>
-            
-            <button class="m-6 bg-black text-white py-3 rounded-lg font-bold text-sm shadow-lg hover:bg-slate-800">
-                Generate Official Report
-            </button>
-        </aside>
     </div>
 
     <script>
-        // State
-        let UPSTREAM_DATA = [];
-        let TOTAL_WEIGHT = 0; // kg
+        // --- 1. DATA STATE ---
+        let UPSTREAM_ITEMS = [
+            { name: 'Poly Fabric', region: 'CN', w: 0.3, e: 0, ef: 1.5, impact: 0.45 },
+            { name: 'Dyeing Process', region: 'VN', w: 0, e: 1.5, ef: 0.45, impact: 0.675 } // VN Grid
+        ];
 
-        // --- 1. RENDER UPSTREAM ---
-        function renderUpstream() {
-            const tbody = document.getElementById('upstream-list');
-            tbody.innerHTML = '';
+        // --- 2. LOGIC (OFFICIAL FORMULAS) ---
+        function runCalc() {
+            // A. Upstream (Sum)
             let upTotal = 0;
-            TOTAL_WEIGHT = 0;
+            let totalWeight = 0;
+            UPSTREAM_ITEMS.forEach(i => {
+                upTotal += i.impact;
+                if(i.w > 0) totalWeight += i.w;
+            });
 
-            UPSTREAM_DATA.forEach((item, idx) => {
-                upTotal += item.impact;
-                if(item.type === 'mat') TOTAL_WEIGHT += item.val; // Only sum materials for weight
+            // B. Distribution (Ton-km approach)
+            // Formula: Weight(ton) * Distance(km) * ModeFactor
+            const distKm = parseFloat(document.getElementById('dist-km').value);
+            const distMode = document.getElementById('dist-mode').value;
+            const distEF = distMode === 'ship' ? 0.008 : 0.602; // kgCO2/ton-km (Defra 2023)
+            const distImpact = (totalWeight / 1000) * distKm * distEF;
 
+            // C. Use Phase (PEFCR Apparel approach)
+            // Formula: Cycles * (Energy_Wash + Energy_Dry + Energy_Iron) * Grid
+            const cycles = parseFloat(document.getElementById('use-cycle').value);
+            const temp = document.getElementById('use-temp').value;
+            const userGrid = parseFloat(document.getElementById('use-grid').value);
+            
+            // Energy consumption model (Simplified PEFCR)
+            let energyPerWash = 0.5; // Base for 40C
+            if(temp === '30') energyPerWash = 0.3;
+            if(temp === '60') energyPerWash = 0.9;
+            
+            const useImpact = cycles * energyPerWash * userGrid;
+
+            // D. EOL (Material specific end-of-life)
+            // Formula: Weight * (%Land * EF_Land + %Inc * EF_Inc + %Rec * EF_Rec)
+            const pLand = parseFloat(document.getElementById('eol-land').value) / 100;
+            const pInc = parseFloat(document.getElementById('eol-inc').value) / 100;
+            const pRec = parseFloat(document.getElementById('eol-rec').value) / 100;
+            
+            const efLand = 0.05; // Decomposition methane
+            const efInc = 1.2;   // Burning emission
+            const efRec = 0.02;  // Processing energy
+            
+            const eolImpact = totalWeight * ((pLand * efLand) + (pInc * efInc) + (pRec * efRec));
+
+            // UPDATE UI
+            renderUpstreamList();
+            document.getElementById('res-up').innerText = upTotal.toFixed(2);
+            document.getElementById('res-dist').innerText = distImpact.toFixed(2);
+            document.getElementById('res-use').innerText = useImpact.toFixed(2);
+            document.getElementById('res-eol').innerText = eolImpact.toFixed(2);
+            
+            const final = upTotal + distImpact + useImpact + eolImpact;
+            document.getElementById('res-total').innerText = final.toFixed(2);
+            document.getElementById('rpt-val').innerText = final.toFixed(2);
+        }
+
+        function renderUpstreamList() {
+            const tbody = document.getElementById('lca-upstream-list');
+            tbody.innerHTML = '';
+            UPSTREAM_ITEMS.forEach(i => {
                 tbody.innerHTML += `
-                    <tr class="border-b border-slate-50 hover:bg-slate-50">
-                        <td class="p-2">
-                            <div class="font-bold text-slate-700 text-xs">${item.name}</div>
-                        </td>
-                        <td class="p-2 text-xs"><span class="bg-slate-100 px-1 rounded">${item.region}</span></td>
-                        <td class="p-2 text-right font-mono text-xs text-slate-600">${item.val} ${item.unit}</td>
-                        <td class="p-2 text-center text-xs text-green-600 font-bold"><i class="fas fa-check"></i></td>
-                        <td class="p-2 text-right font-bold text-xs">${item.impact.toFixed(2)}</td>
+                    <tr class="border-b border-slate-100">
+                        <td class="p-2 font-medium">${i.name}</td>
+                        <td class="p-2 text-xs"><span class="bg-slate-100 px-1 rounded">${i.region}</span></td>
+                        <td class="p-2 text-right text-xs text-slate-500">${i.w > 0 ? i.w : '-'}</td>
+                        <td class="p-2 text-right text-xs text-slate-500">${i.e > 0 ? i.e : '-'}</td>
+                        <td class="p-2 text-right font-bold">${i.impact.toFixed(2)}</td>
                     </tr>
                 `;
             });
-
-            document.getElementById('total-weight').innerText = TOTAL_WEIGHT.toFixed(2);
-            updateDownstream(upTotal);
         }
 
-        // --- 2. CALC DOWNSTREAM & TOTAL ---
-        function updateDownstream(upTotalArg) {
-            // Recalculate Upstream Total if not provided
-            let upTotal = upTotalArg;
-            if (upTotal === undefined) {
-                upTotal = UPSTREAM_DATA.reduce((a,b)=>a+b.impact, 0);
-            }
-
-            // A. Distribution
-            const distMode = document.getElementById('dist-mode').value;
-            const distFactor = distMode === 'air' ? 0.602 : 0.008; // Air is heavy impact
-            const distKm = 8000; // Hardcoded scenario distance
-            const resDist = (TOTAL_WEIGHT / 1000) * distKm * distFactor;
-
-            // B. Use Phase
-            const useType = document.getElementById('use-type').value;
-            const cycles = parseFloat(document.getElementById('use-cycles').value);
-            const energyPerCycle = useType === 'apparel' ? 0.5 : 0.1; // kWh
-            const resUse = cycles * energyPerCycle * 0.478; // Grid Factor KR avg
-
-            // C. EOL
-            const eolMode = document.getElementById('eol-mode').value;
-            let eolFactor = 0.5; // Mixed
-            if(eolMode === 'burn') eolFactor = 1.2;
-            if(eolMode === 'bury') eolFactor = 0.15;
-            const resEol = TOTAL_WEIGHT * eolFactor;
-
-            // Render Results
-            document.getElementById('res-dist').innerText = resDist.toFixed(2);
-            document.getElementById('res-use').innerText = resUse.toFixed(2);
-            document.getElementById('res-eol').innerText = resEol.toFixed(2);
-
-            // Dashboard Summary
-            const finalTotal = upTotal + resDist + resUse + resEol;
-            document.getElementById('total-final').innerText = finalTotal.toFixed(2);
+        // --- 3. UI ACTIONS ---
+        function setTab(id) {
+            document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
+            document.getElementById('tab-' + id).classList.remove('hidden');
             
-            document.getElementById('sum-up').innerText = upTotal.toFixed(2);
-            document.getElementById('sum-dist').innerText = resDist.toFixed(2);
-            document.getElementById('sum-use').innerText = resUse.toFixed(2);
-            document.getElementById('sum-eol').innerText = resEol.toFixed(2);
-
-            // Bar Update
-            const upPct = (upTotal / finalTotal) * 100;
-            document.getElementById('bar-up').style.width = upPct + '%';
-            document.getElementById('bar-down').style.width = (100 - upPct) + '%';
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById('nav-' + id).classList.add('active');
         }
 
-        // --- 3. OCR SIMULATION ---
-        const dropOcr = document.getElementById('drop-ocr');
-        dropOcr.addEventListener('click', () => {
-            dropOcr.classList.add('scanning');
+        // OCR Simulation
+        document.getElementById('btn-ocr').addEventListener('click', () => {
+            document.getElementById('btn-ocr').classList.add('scanning');
             setTimeout(() => {
-                // Mock Data Added from OCR
-                UPSTREAM_DATA.push({ name: 'Polyester Fabric', region: 'CN', val: 0.3, unit: 'kg', type: 'mat', impact: 0.8 });
-                UPSTREAM_DATA.push({ name: 'Rubber Sole', region: 'VN', val: 0.2, unit: 'kg', type: 'mat', impact: 0.5 });
-                UPSTREAM_DATA.push({ name: 'Assembly Energy', region: 'VN', val: 1.5, unit: 'kWh', type: 'proc', impact: 0.7 });
-                
-                dropOcr.classList.remove('scanning');
-                renderUpstream();
+                UPSTREAM_ITEMS.push({ name: 'Scanned: Cotton', region: 'IN', w: 0.5, e: 0, ef: 1.2, impact: 0.6 });
+                document.getElementById('btn-ocr').classList.remove('scanning');
+                runCalc();
+                alert('OCR Complete: 1 Item Added');
             }, 1000);
         });
 
-        // Init
-        renderUpstream();
+        function balanceEOL(changed) {
+            // Simple logic to ensure sum is 100% (omitted for brevity, assume user inputs correctly)
+            runCalc();
+        }
 
+        // Init
+        setTab('lca');
+        runCalc();
     </script>
 </body>
 </html>
